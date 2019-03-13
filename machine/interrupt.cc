@@ -173,14 +173,14 @@ Interrupt::OneTick()
     if (yieldOnReturn) {		// if the timer device handler asked 
 					// for a context switch, ok to do it now
         yieldOnReturn = FALSE;
-        printf("yield on return.\n");
+        //printf("yield on return.\n");
         status = SystemMode;		// yield is a kernel routine
         currentThread->Yield();
     }
     else if(timeSlice==TRUE){
         timeSlice=FALSE;
         status = SystemMode;
-        printf("time slice.\n");
+        //printf("time slice.\n");
         currentThread->ForcedYield();
         
     }

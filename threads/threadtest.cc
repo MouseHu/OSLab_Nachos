@@ -44,7 +44,7 @@ void TimerThread(int loop_time=20){
         interrupt->SetLevel(IntOn);
         interrupt->SetLevel(IntOff);
         if (i%5 == 0){
-            printf("thread :%s looped %d times, %d \n",currentThread->getName(),i,(int)currentThread);
+            printf("thread :%s looped %d times \n",currentThread->getName(),i);
             //scheduler->GetReadyList()->Print();
             //scheduler->GetFIFOList()->Print();
             //stats->Print();
@@ -155,7 +155,7 @@ ThreadTest5()
     DEBUG('t', "Entering ThreadTest5\n");
     Thread *t1 = new Thread("forked thread 1",1000);
     Thread *t2 = new Thread("forked thread 2",100);
-    Thread *t3 = new Thread("forked thread 2",10);
+    Thread *t3 = new Thread("forked thread 3",10);
     t1->Fork(SimpleThread, 1);
     t2->Fork(SimpleThread,1);
     t3->Fork(SimpleThread,1);
