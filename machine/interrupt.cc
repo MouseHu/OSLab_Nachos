@@ -63,6 +63,7 @@ Interrupt::Interrupt()
     pending = new List();
     inHandler = FALSE;
     yieldOnReturn = FALSE;
+    timeSlice = FALSE;//add by huhao if in a interupt caused by timeslice
     status = SystemMode;
 }
 
@@ -171,11 +172,21 @@ Interrupt::OneTick()
     ChangeLevel(IntOff, IntOn);		// re-enable interrupts
     if (yieldOnReturn) {		// if the timer device handler asked 
 					// for a context switch, ok to do it now
-	yieldOnReturn = FALSE;
- 	status = SystemMode;		// yield is a kernel routine
-	currentThread->Yield();
-	status = old;
+        yieldOnReturn = FALSE;
+        printf("yield on return.\n");
+        status = SystemMode;		// yield is a kernel routine
+        currentThread->Yield();
     }
+    else if(timeSlice==TRUE){
+        timeSlice=FALSE;
+        status = SystemMode;
+        printf("time slice.\n");
+        currentThread->ForcedYield();
+        
+    }
+	
+	status = old;
+
 }
 
 //----------------------------------------------------------------------
@@ -195,7 +206,16 @@ Interrupt::YieldOnReturn()
     ASSERT(inHandler == TRUE);  
     yieldOnReturn = TRUE; 
 }
-
+// add by huhao
+void Interrupt::Timeslice()
+{ 
+    ASSERT(inHandler == TRUE);  
+    //yieldOnReturn = TRUE; 
+    timeSlice = TRUE;
+}
+bool Interrupt::getTimeslice(){
+    return timeSlice;
+}
 //----------------------------------------------------------------------
 // Interrupt::Idle
 // 	Routine called when there is nothing in the ready queue.

@@ -19,6 +19,9 @@ Statistics *stats;			// performance metrics
 Timer *timer;				// the hardware timer device,
 					// for invoking context switches
 
+//add by huhao SliceTimer to schedule threads
+Timer *sliceTimer;
+
 #ifdef FILESYS_NEEDED
 FileSystem  *fileSystem;
 #endif
@@ -60,9 +63,20 @@ extern void Cleanup();
 static void
 TimerInterruptHandler(int dummy)
 {
+    //printf("i don't know what does this do.");
     if (interrupt->getStatus() != IdleMode)
 	interrupt->YieldOnReturn();
 }
+
+//add by huhao to switch threads every time slice
+static void 
+TimeSliceHandler(int dummy){
+    printf("Time Slice Scheduling.\n");
+    //if (interrupt->getStatus() != IdleMode)
+	interrupt->Timeslice();
+}
+
+
 
 //----------------------------------------------------------------------
 // Initialize
@@ -138,7 +152,7 @@ Initialize(int argc, char **argv)
     scheduler = new Scheduler();		// initialize the ready queue
     if (randomYield)				// start the timer (if needed)
 	timer = new Timer(TimerInterruptHandler, 0, randomYield);
-
+    sliceTimer = new Timer(TimeSliceHandler,0,FALSE);      
     threadToBeDestroyed = NULL;
 
     // We didn't explicitly allocate the current thread we are running in.
@@ -194,7 +208,7 @@ Cleanup()
     delete timer;
     delete scheduler;
     delete interrupt;
-    
+    delete sliceTimer;
     Exit(0);
 }
 

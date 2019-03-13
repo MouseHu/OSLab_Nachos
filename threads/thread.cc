@@ -24,7 +24,10 @@
 #define STACK_FENCEPOST 0xdeadbeef	// this is put at the top of the
 					// execution stack, for detecting 
 					// stack overflows
+
+
 bool threads_occupied[MAX_THREAD];
+
 //----------------------------------------------------------------------
 // Thread::Thread
 // 	Initialize a thread control block, so that we can then call
@@ -38,6 +41,12 @@ int Thread::getUserID(){
 }
 int Thread::getThreadID(){
     return threadID;
+}
+int Thread::getPriority(){
+    return priority;
+}
+void Thread::setPriority(int prior){
+    priority = MIN(MAX(prior,MAX_PRIOR),MIN_PRIOR);
 }
 int Thread::allocateThreadID(){
     int i;
@@ -78,12 +87,13 @@ void Thread::PrintStatus(){
     std::cout<<this->getStatus()<<std::endl;
 }
 //add by huhao
-Thread::Thread(char* threadName)
+Thread::Thread(char* threadName,int prior)
 {
     name = threadName;
     stackTop = NULL;
     stack = NULL;
     status = JUST_CREATED;
+    priority = MIN(MAX(prior,MAX_PRIOR),MIN_PRIOR);
     //add by huhao
     userID = getuid();
     threadID = allocateThreadID();
@@ -237,14 +247,34 @@ Thread::Yield ()
     
     DEBUG('t', "Yielding thread \"%s\"\n", getName());
     
+    scheduler->ReadyToRun(this);
     nextThread = scheduler->FindNextToRun();
+    
     if (nextThread != NULL) {
-	scheduler->ReadyToRun(this);
 	scheduler->Run(nextThread);
     }
     (void) interrupt->SetLevel(oldLevel);
 }
+//add by huhao
+void
+Thread::ForcedYield ()
+{
+    Thread *nextThread;
 
+    IntStatus oldLevel = interrupt->SetLevel(IntOff);
+    
+    ASSERT(this == currentThread);
+    
+    DEBUG('t', "Forced Yielding thread \"%s\"\n", getName());
+    
+    scheduler->ReadyToRun(this);
+    nextThread = scheduler->SliceFindNextToRun();
+    
+    if (nextThread != NULL) {
+	scheduler->Run(nextThread);
+    }
+    (void) interrupt->SetLevel(oldLevel);
+}
 //----------------------------------------------------------------------
 // Thread::Sleep
 // 	Relinquish the CPU, because the current thread is blocked
@@ -275,9 +305,14 @@ Thread::Sleep ()
     DEBUG('t', "Sleeping thread \"%s\"\n", getName());
 
     status = BLOCKED;
-    while ((nextThread = scheduler->FindNextToRun()) == NULL)
-	interrupt->Idle();	// no one to run, wait for an interrupt
-        
+    //modified by huhao
+    nextThread= interrupt->getTimeslice()?scheduler->SliceFindNextToRun():scheduler->FindNextToRun();
+    while (nextThread == NULL){
+        interrupt->Idle();	// no one to run, wait for an interrupt
+        nextThread= interrupt->getTimeslice()?scheduler->SliceFindNextToRun():scheduler->FindNextToRun();
+    }
+	
+    DEBUG('t',"***next running thread:%s ***\n",nextThread->getName());    
     scheduler->Run(nextThread); // returns when we've been signalled
 }
 

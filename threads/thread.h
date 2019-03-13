@@ -40,6 +40,7 @@
 #include "copyright.h"
 #include "utility.h"
 #include <string>
+#include <iostream>
 #ifdef USER_PROGRAM
 #include "machine.h"
 #include "addrspace.h"
@@ -53,8 +54,14 @@
 
 // Size of the thread's private execution stack.
 // WATCH OUT IF THIS ISN'T BIG ENOUGH!!!!!
-#define StackSize	(4 * 1024)	// in words
-
+//#define StackSize	(4 * 1024)	// in words
+#define StackSize	(4 * 8192)	// in words
+//add by huhao
+#define MIN_PRIOR 1000
+#define MAX_PRIOR 0
+#define MAX(a,b) (a>b?a:b)
+#define MIN(a,b) (a<b?a:b)
+//add by huhao
 
 // Thread state
 enum ThreadStatus { JUST_CREATED, RUNNING, READY, BLOCKED };
@@ -81,7 +88,7 @@ class Thread {
     int machineState[MachineStateSize];  // all registers except for stackTop
 
   public:
-    Thread(char* debugName);		// initialize a Thread 
+    Thread(char* debugName,int prior = MAX_PRIOR);		// initialize a Thread 
     ~Thread(); 				// deallocate a Thread
 					// NOTE -- thread being deleted
 					// must not be running when delete 
@@ -92,6 +99,7 @@ class Thread {
     void Fork(VoidFunctionPtr func, int arg); 	// Make thread run (*func)(arg)
     void Yield();  				// Relinquish the CPU if any 
 						// other thread is runnable
+    void ForcedYield();
     void Sleep();  				// Put the thread to sleep and 
 						// relinquish the processor
     void Finish();  				// The thread is done executing
@@ -102,7 +110,7 @@ class Thread {
     char* getName() { return (name); }
     void Print() { printf("%s, ", name); }
     void PrintStatus();
-    
+
   private:
     // some of the private data for this class is listed above
     
@@ -119,11 +127,14 @@ class Thread {
     private:
       int userID;
       int threadID;
+      int priority;
     public:
       int getUserID();
       int getThreadID();
       std::string getStatus();
       int allocateThreadID();
+      int getPriority();
+      void setPriority(int p);
     //add by huhao
 
 #ifdef USER_PROGRAM

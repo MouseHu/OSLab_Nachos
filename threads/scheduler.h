@@ -25,14 +25,19 @@ class Scheduler {
     void ReadyToRun(Thread* thread);	// Thread can be dispatched.
     Thread* FindNextToRun();		// Dequeue first thread on the ready 
 					// list, if any, and return thread.
+    Thread* SliceFindNextToRun();		// Find Next Thread to run
     void Run(Thread* nextThread);	// Cause nextThread to start running
     void Print();			// Print contents of ready list
     List *GetReadyList(){
       return readyList;
     }
+    List *GetFIFOList(){
+      return fifoList;
+    }
   private:
-    List *readyList;  		// queue of threads that are ready to run,
+    List* readyList;  		// queue of threads that are ready to run,
 				// but not running
+    List* fifoList;
 };
 
 #endif // SCHEDULER_H

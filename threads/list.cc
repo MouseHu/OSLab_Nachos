@@ -74,16 +74,22 @@ List::~List()
 //----------------------------------------------------------------------
 
 void
-List::Append(void *item)
+List::Append(void *item,int sortkey)
 {
-    ListElement *element = new ListElement(item, 0);
-
+    DEBUG('t', "?1.\n");
+    //printf("%d",(int)last->item);
+    ListElement *element = new ListElement(item, sortkey);
+    
     if (IsEmpty()) {		// list is empty
-	first = element;
-	last = element;
-    } else {			// else put it after last
-	last->next = element;
-	last = element;
+        DEBUG('t', "?2.\n");
+        first = element;
+        last = element;
+    } 
+    else {			// else put it after last
+        DEBUG('t', "?3.\n");
+        //printf("%d,%d\n",last->item,element->item);
+        last->next = element;
+        last = element;
     }
 }
 
@@ -234,5 +240,36 @@ List::SortedRemove(int *keyPtr)
         *keyPtr = element->key;
     delete element;
     return thing;
+}
+
+//add by huhao
+bool List::RemoveElement(void* item){
+    bool deleted = FALSE;
+    ListElement *element = first;
+    if(first->item==item){
+        //if the first one is the one
+        //delete item;
+        this->first=first->next;
+        //delete this->first;
+        if(first==NULL)
+            last=NULL;
+        deleted = TRUE;
+    }
+    else{
+        while((element->next!=NULL) && (element->next->item != item) ){
+                element=element->next;
+        }
+        if(element->next!=NULL){
+            //delete item;
+            deleted = TRUE;
+            //delete element->next;
+            element->next=element->next->next;
+            if(element->next==NULL){
+                last = element;
+            }
+        }
+    }
+   
+    return deleted;
 }
 

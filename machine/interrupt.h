@@ -94,7 +94,9 @@ class Interrupt {
     
     void YieldOnReturn();		// cause a context switch on return 
 					// from an interrupt handler
-
+    //add by huhao
+    void Timeslice();
+    bool getTimeslice();
     MachineStatus getStatus() { return status; } // idle, kernel, user
     void setStatus(MachineStatus st) { status = st; }
 
@@ -119,6 +121,7 @@ class Interrupt {
     bool inHandler;		// TRUE if we are running an interrupt handler
     bool yieldOnReturn; 	// TRUE if we are to context switch
 				// on return from the interrupt handler
+    bool timeSlice;
     MachineStatus status;	// idle, kernel mode, user mode
 
     // these functions are internal to the interrupt simulation code

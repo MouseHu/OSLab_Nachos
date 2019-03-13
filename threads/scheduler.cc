@@ -29,7 +29,8 @@
 
 Scheduler::Scheduler()
 { 
-    readyList = new List; 
+    readyList = new List;
+    fifoList = new List;
 } 
 
 //----------------------------------------------------------------------
@@ -40,6 +41,7 @@ Scheduler::Scheduler()
 Scheduler::~Scheduler()
 { 
     delete readyList; 
+    delete fifoList;
 } 
 
 //----------------------------------------------------------------------
@@ -56,7 +58,16 @@ Scheduler::ReadyToRun (Thread *thread)
     DEBUG('t', "Putting thread %s on ready list.\n", thread->getName());
 
     thread->setStatus(READY);
-    readyList->Append((void *)thread);
+    //modified by huhao
+    //readyList->Append((void *)thread);
+    readyList->SortedInsert((void *)thread,thread->getPriority());
+    DEBUG('t', "Sorted Insert OK.\n");
+    //readyList->Print();
+    //fifoList->Print();
+    fifoList->Append((void *)thread,thread->getPriority());
+    DEBUG('t', "Append OK %d.\n",(int)thread);
+    //fifoList->Print();
+    //Print();
 }
 
 //----------------------------------------------------------------------
@@ -70,7 +81,21 @@ Scheduler::ReadyToRun (Thread *thread)
 Thread *
 Scheduler::FindNextToRun ()
 {
-    return (Thread *)readyList->Remove();
+    //modified by huhao
+    void* item = readyList->Remove();
+    //DEBUG('t',"in FindNext to Run Here is ok? %d\n",(int)item);
+    if(item!=NULL){
+        //DEBUG('t',"Here is ok?\n");
+        bool removed = fifoList->RemoveElement(item);
+        //fifoList->Print();
+        ASSERT(removed==TRUE)
+    }
+    
+    //DEBUG('t',"Here is ok?");
+    
+    return (Thread *)item;
+    //int key;
+    //return (Thread *)readyList->SortedRemove(&key);
 }
 
 //----------------------------------------------------------------------
@@ -144,4 +169,24 @@ Scheduler::Print()
 {
     printf("Ready list contents:\n");
     readyList->Mapcar((VoidFunctionPtr) ThreadPrint);
+    printf("Fifo list contents:\n");
+    //fifoList->Print();
+    fifoList->Mapcar((VoidFunctionPtr) ThreadPrint);
+}
+
+//add by huhao
+Thread *
+Scheduler::SliceFindNextToRun ()
+{
+    //DEBUG('t',"???");
+    void *item = fifoList->Remove();
+    //DEBUG('t',"Here is ok?");
+    if(item!=NULL){
+        bool removed = readyList->RemoveElement(item);
+    //DEBUG('t',"Remove caused Again?");
+        ASSERT(removed==TRUE)
+    }
+    return (Thread*) item; 
+    //int key;
+    //return (Thread *)readyList->SortedRemove(&key);
 }

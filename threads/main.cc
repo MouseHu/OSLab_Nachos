@@ -101,7 +101,7 @@ int main(int argc, char **argv)
 			  break;
 		  }
       default:
-        testnum = 1;
+        testnum = 5;
         break;
       }
     }
