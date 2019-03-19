@@ -79,6 +79,10 @@ class Lock {
 
   private:
     char* name;				// for debugging
+    // add by huhao
+    void* occupingThread;
+    bool locked;
+    List *queue;
     // plus some other stuff you'll need to define
 };
 
@@ -131,6 +135,9 @@ class Condition {
 
   private:
     char* name;
+    //add by huhao
+    List * queue;
+
     // plus some other stuff you'll need to define
 };
 #endif // SYNCH_H

@@ -58,7 +58,7 @@ extern int testnum;
 #endif
 
 // External functions used by this file
-
+extern void SynchTest(void);
 extern void ThreadTest(void), Copy(char *unixFile, char *nachosFile);
 extern void Print(char *file), PerformanceTest(void);
 extern void StartProcess(char *file), ConsoleTest(char *in, char *out);
@@ -88,6 +88,7 @@ int main(int argc, char **argv)
 
     PrintHello();
 #ifdef THREADS
+	bool synchTest = false;
     for (argc--, argv++; argc > 0; argc -= argCount, argv += argCount) {
       argCount = 1;
       switch (argv[0][1]) {
@@ -100,13 +101,20 @@ int main(int argc, char **argv)
 			  testnum = 4;
 			  break;
 		  }
+	  case 's':
+	  	testnum = atoi(argv[1]);
+        argCount++;
+		synchTest = TRUE;
+        break;
       default:
-        testnum = 5;
+        testnum = 1;
         break;
       }
     }
-
-    ThreadTest();
+	if(synchTest)
+		SynchTest();
+	else
+    	ThreadTest();
 #endif
 
     for (argc--, argv++; argc > 0; argc -= argCount, argv += argCount) {
