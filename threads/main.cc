@@ -107,7 +107,7 @@ int main(int argc, char **argv)
 		synchTest = TRUE;
         break;
       default:
-        testnum = 1;
+        testnum = 2;
         break;
       }
     }

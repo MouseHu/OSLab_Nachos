@@ -112,6 +112,10 @@ Lock::~Lock() {
 }
 void Lock::Acquire() {
     IntStatus old =interrupt->SetLevel(IntOff);
+    if(isHeldByCurrentThread()){
+        DEBUG('t',"lock already acquired\n");
+        return;
+    }
     while(locked){
         queue->Append((void*)currentThread);
         currentThread->Sleep();
@@ -152,6 +156,7 @@ void Condition::Wait(Lock* conditionLock) {
     conditionLock->Release();
     queue->Append((void*)currentThread);
     currentThread->Sleep();
+    //printf("thread:%s what?",currentThread->getName());
     conditionLock->Acquire();
     interrupt->SetLevel(old);
 }
@@ -161,6 +166,7 @@ void Condition::Signal(Lock* conditionLock) {
     //ASSERT(conditionLock->isHeldByCurrentThread())
     if(!queue->IsEmpty()){
         Thread* awakenThread = (Thread*)queue->Remove();
+        printf("awaking %s\n",awakenThread->getName());
         scheduler->ReadyToRun(awakenThread);
     }
     conditionLock->Release();
@@ -171,6 +177,7 @@ void Condition::Broadcast(Lock* conditionLock) {
     //ASSERT(conditionLock->isHeldByCurrentThread())
     while(!queue->IsEmpty()){
         Thread* awakenThread = (Thread*)queue->Remove();
+        printf("awaking %s\n",awakenThread->getName());
         scheduler->ReadyToRun(awakenThread);
     }
     conditionLock->Release();

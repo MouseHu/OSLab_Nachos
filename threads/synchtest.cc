@@ -2,61 +2,20 @@
 #include "copyright.h"
 #include "system.h"
 #include "synchlist.h"
+#include "producerconsumer.h"
+#include "philosopher.h"
 #include <string>
 #include<sstream>
 // prolist using lock 
-SynchList* proList = new SynchList;
+
 extern int testnum;
-int list_count=0;
-const int max_product = 8;
+extern int list_count;
+extern const int max_product;
+extern SynchList* proList;
 
-
-class Product{
-    private:
-        int product_id;
-        static int product_count;
-        
-        
-    public:
-        
-        Product(){
-            product_id = product_count++;
-        }
-        int getID(){
-           return product_id; 
-        }
-        
-};
-int Product::product_count=0;
-
-void Producer(int n){
-    //printf("producer here.\n");
-    for(int i = 0;i<n;i++){
-        
-        IntStatus old = interrupt->SetLevel(IntOff);
-        Product* product = new Product;
-        while(list_count>=max_product){
-            currentThread->Sleep();
-        }
-        proList->Append((void *)(product));
-        list_count++;
-        //product->setID(product_count++);
-        printf("thread: %s, producing product: %d, product queue len:%d \n",currentThread->getName(), product->getID(),list_count);
-        interrupt->SetLevel(old);
-    }
-}
-void Consumer(int n){
-    //printf("consumer here.\n");
-    for(int i = 0;i<n;i++){
-        IntStatus old = interrupt->SetLevel(IntOff);
-        Product* product = (Product*)proList->Remove();
-        list_count--;
-        printf("thread: %s, consuming product: %d,product queue len:%d\n",currentThread->getName(), product->getID(),list_count);
-        interrupt->SetLevel(old);
-    }
-    
-}
-
+//philosopher
+extern Philosopher* philosophers[num_philosopher];
+extern Lock* table;
 // Producer Consumer test for semaphore
 void
 SynchTest1()
@@ -78,15 +37,42 @@ SynchTest1()
 
 
 }
-
+// philosopher
 void
 SynchTest2()
 {
+    PhiloInit();
+    Thread *t1 = new Thread("philosopher 0");
+    t1->Fork(Action, (int)philosophers[0]);
+    Thread *t2 = new Thread("philosopher 1");
+    t2->Fork(Action, (int)philosophers[1]);
+    Thread *t3 = new Thread("philosopher 2");
+    t3->Fork(Action, (int)philosophers[2]);
+    Thread *t4 = new Thread("philosopher 3");
+    t4->Fork(Action, (int)philosophers[3]);
+    Thread *t5 = new Thread("philosopher 4");
+    t5->Fork(Action, (int)philosophers[4]);
 }
 void
 SynchTest3()
 {
+    Lock* rcLock = new Lock("rcLock");
+    Lock* wlock = new Lock("wlock");
+
+    Thread * r1 = new Thread("r1");
+    Thread * r2 = new Thread("r2");
+    Thread * r3 = new Thread("r3");
+    Thread * w1 = new Thread("w1");
+    Thread * w2 = new Thread("w2");
+
+    //r1->Fork(read,1);
+    //w1->Fork(write,1);
+    //r2->Fork(read,1);
+   // w2->Fork(write,1);
+   // r3->Fork(read,1);
+
 }
+
 void
 SynchTest4()
 {
