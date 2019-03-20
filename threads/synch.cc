@@ -113,33 +113,40 @@ Lock::~Lock() {
 void Lock::Acquire() {
     IntStatus old =interrupt->SetLevel(IntOff);
     if(isHeldByCurrentThread()){
-        DEBUG('t',"lock already acquired\n");
+        DEBUG('t',"lock %s already acquired\n",name);
         return;
     }
     while(locked){
         queue->Append((void*)currentThread);
         currentThread->Sleep();
     }
-    DEBUG('t',"lock acquired\n");
+    DEBUG('t',"lock %s acquired\n",name);
     locked = TRUE;
     occupingThread = currentThread;
     interrupt->SetLevel(old);
 }
 void Lock::Release() {
     IntStatus old = interrupt->SetLevel(IntOff);
-    ASSERT(isHeldByCurrentThread())
+    if(!isHeldByCurrentThread()){
+        return;
+    }else if(locked==false){
+        DEBUG('t',"lock %s already released\n",name);
+        return;
+    }
     locked = FALSE;
     occupingThread = NULL;
-    DEBUG('t',"lock released\n");
+    DEBUG('t',"lock %s released\n",name);
     if(!queue->IsEmpty()){
         Thread* awakeThread = (Thread*)queue->Remove();
+        DEBUG('t',"lock awaking thread %s",awakeThread->getName());
         scheduler->ReadyToRun(awakeThread);
     }
     interrupt->SetLevel(old);
 }
+//bool Lock::isHeldBy
 bool Lock::isHeldByCurrentThread(){
     if(occupingThread==NULL)
-        return TRUE;
+        return FALSE;
     DEBUG('t',"current thread: %s occpuingThread:%s\n",currentThread->getName(),((Thread*)occupingThread)->getName());
     return ((void*)occupingThread==(void *)currentThread);
 };
@@ -163,7 +170,7 @@ void Condition::Wait(Lock* conditionLock) {
 void Condition::Signal(Lock* conditionLock) {
     IntStatus old = interrupt->SetLevel(IntOff);
     //conditionLock->Acquire();
-    //ASSERT(conditionLock->isHeldByCurrentThread())
+    ASSERT(conditionLock->isHeldByCurrentThread())
     if(!queue->IsEmpty()){
         Thread* awakenThread = (Thread*)queue->Remove();
         printf("awaking %s\n",awakenThread->getName());
@@ -174,7 +181,7 @@ void Condition::Signal(Lock* conditionLock) {
  }
 void Condition::Broadcast(Lock* conditionLock) {
     IntStatus old = interrupt->SetLevel(IntOff);
-    //ASSERT(conditionLock->isHeldByCurrentThread())
+    ASSERT(conditionLock->isHeldByCurrentThread())
     while(!queue->IsEmpty()){
         Thread* awakenThread = (Thread*)queue->Remove();
         printf("awaking %s\n",awakenThread->getName());

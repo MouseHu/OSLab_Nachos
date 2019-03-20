@@ -71,7 +71,7 @@ TimerInterruptHandler(int dummy)
 //add by huhao to switch threads every time slice
 static void 
 TimeSliceHandler(int dummy){
-    printf("Time Slice Scheduling.\n");
+    //printf("Time Slice Scheduling.\n");
     //if (interrupt->getStatus() != IdleMode)
 	interrupt->Timeslice();
 }

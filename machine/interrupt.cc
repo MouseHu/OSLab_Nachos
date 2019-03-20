@@ -366,7 +366,7 @@ PrintPending(int arg)
 {
     PendingInterrupt *pend = (PendingInterrupt *)arg;
 
-    printf("Interrupt handler %s, scheduled at %d\n", 
+    printf("\t* Interrupt handler %s, scheduled at %d\n", 
 	intTypeNames[pend->type], pend->when);
 }
 
@@ -384,6 +384,6 @@ Interrupt::DumpState()
     printf("Pending interrupts:\n");
     fflush(stdout);
     pending->Mapcar(PrintPending);
-    printf("End of pending interrupts\n");
+    //printf("End of pending interrupts\n");
     fflush(stdout);
 }

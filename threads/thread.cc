@@ -249,7 +249,8 @@ Thread::Yield ()
     
     scheduler->ReadyToRun(this);
     nextThread = scheduler->FindNextToRun();
-    
+
+    printf("\tthread switching:\t%s -> %s\n",this->getName(),nextThread->getName());
     if (nextThread != NULL) {
 	scheduler->Run(nextThread);
     }
@@ -269,7 +270,7 @@ Thread::ForcedYield ()
     
     scheduler->ReadyToRun(this);
     nextThread = scheduler->SliceFindNextToRun();
-    
+    printf("\ttimeslice scheduling:\t%s -> %s\n",this->getName(),nextThread->getName());
     if (nextThread != NULL) {
 	scheduler->Run(nextThread);
     }
@@ -311,7 +312,7 @@ Thread::Sleep ()
         interrupt->Idle();	// no one to run, wait for an interrupt
         nextThread= interrupt->getTimeslice()?scheduler->SliceFindNextToRun():scheduler->FindNextToRun();
     }
-	
+	printf("\tthread switching:\t%s -> %s\n",this->getName(),nextThread->getName());
     DEBUG('t',"***next running thread:%s ***\n",nextThread->getName());    
     scheduler->Run(nextThread); // returns when we've been signalled
 }

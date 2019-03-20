@@ -76,17 +76,17 @@ List::~List()
 void
 List::Append(void *item,int sortkey)
 {
-    DEBUG('t', "?1.\n");
+    //DEBUG('t', "?1.\n");
     //printf("%d",(int)last->item);
     ListElement *element = new ListElement(item, sortkey);
     
     if (IsEmpty()) {		// list is empty
-        DEBUG('t', "?2.\n");
+        //DEBUG('t', "?2.\n");
         first = element;
         last = element;
     } 
     else {			// else put it after last
-        DEBUG('t', "?3.\n");
+        //DEBUG('t', "?3.\n");
         //printf("%d,%d\n",last->item,element->item);
         last->next = element;
         last = element;
@@ -147,7 +147,7 @@ void
 List::Mapcar(VoidFunctionPtr func)
 {
     for (ListElement *ptr = first; ptr != NULL; ptr = ptr->next) {
-       DEBUG('l', "In mapcar, about to invoke %x(%x)\n", func, ptr->item);
+       //DEBUG('l', "In mapcar, about to invoke %x(%x)\n", func, ptr->item);
        (*func)((int)ptr->item);
     }
 }

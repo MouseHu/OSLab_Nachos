@@ -2,8 +2,10 @@
 #include "copyright.h"
 #include "system.h"
 #include "synchlist.h"
+#include "wrlock.h"
 #include "producerconsumer.h"
 #include "philosopher.h"
+#include "barrier.h"
 #include <string>
 #include<sstream>
 // prolist using lock 
@@ -16,7 +18,14 @@ extern SynchList* proList;
 //philosopher
 extern Philosopher* philosophers[num_philosopher];
 extern Lock* table;
+
+extern Barrier* barrier;
+extern int count;
 // Producer Consumer test for semaphore
+
+extern int file;
+extern WRlock* wrlock;
+
 void
 SynchTest1()
 {
@@ -56,8 +65,6 @@ SynchTest2()
 void
 SynchTest3()
 {
-    Lock* rcLock = new Lock("rcLock");
-    Lock* wlock = new Lock("wlock");
 
     Thread * r1 = new Thread("r1");
     Thread * r2 = new Thread("r2");
@@ -65,17 +72,34 @@ SynchTest3()
     Thread * w1 = new Thread("w1");
     Thread * w2 = new Thread("w2");
 
-    //r1->Fork(read,1);
-    //w1->Fork(write,1);
-    //r2->Fork(read,1);
-   // w2->Fork(write,1);
-   // r3->Fork(read,1);
+    r1->Fork(Reading,4);
+    w1->Fork(Writing,6);
+    r2->Fork(Reading,4);
+    w2->Fork(Writing,8);
+    r3->Fork(Reading,4);
 
 }
 
 void
 SynchTest4()
 {
+    IntStatus old = interrupt->SetLevel(IntOff);
+    char* name[barrier_count];
+    for(int i=0;i<barrier_count;i++){
+        name[i] = new char[8];
+        for(int j =0;j<8;j++){
+            name[i][j]="adder ?"[j];
+        }
+        name[i][6] = i+'0';
+    } 
+    Thread* t[barrier_count];
+    for(int i=0;i<barrier_count;i++){
+        //name[6]=i+'0';
+        t[i] = new Thread((char*)name[i]);
+        printf("%s\n",(char*)name[i]);
+        t[i]->Fork(Add,10);
+    }
+    interrupt->SetLevel(old);
 }
 
 void
@@ -91,6 +115,9 @@ SynchTest()
     break;
     case 3:
     SynchTest3();
+    break;
+    case 4:
+    SynchTest4();
     break;
     default:
 	printf("No test specified.\n");
