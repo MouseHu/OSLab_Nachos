@@ -22,6 +22,8 @@ Statistics::Statistics()
     numDiskReads = numDiskWrites = 0;
     numConsoleCharsRead = numConsoleCharsWritten = 0;
     numPageFaults = numPacketsSent = numPacketsRecvd = 0;
+    tlb_hit =0 ;
+    tlb_miss = 0;
 }
 
 //----------------------------------------------------------------------
@@ -33,6 +35,8 @@ Statistics::Statistics()
 void
 Statistics::Print()
 {
+    double rate = tlb_miss/(tlb_hit+0.0);
+    printf("tlb hit: %d, tlb miss: %d miss rate:%.3f\n",tlb_hit,tlb_miss,rate);
     printf("Ticks: total %d, idle %d, system %d, user %d\n", totalTicks, 
 	idleTicks, systemTicks, userTicks);
     printf("Disk I/O: reads %d, writes %d\n", numDiskReads, numDiskWrites);

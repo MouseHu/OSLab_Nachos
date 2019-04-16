@@ -188,8 +188,18 @@ ThreadTest6()
     //t3->Fork(SimpleThread,1);
 
 }
-
-
+void SimpleThread2(int which){
+    for(int i=0;i<100;i++){
+        printf("%s\n",currentThread->getName());
+        interrupt->OneTick();
+    }
+}
+void ThreadTest7(){
+    Thread *t = new Thread("kitty");
+    t->Fork(SimpleThread2,0);
+    Thread *t1 = new Thread("world");
+    t1->Fork(SimpleThread2,0);
+}
 //----------------------------------------------------------------------
 // ThreadTest
 // 	Invoke a test routine.
@@ -215,7 +225,7 @@ ThreadTest()
     ThreadTest5();
     break;
     case 6:
-    ThreadTest6();
+    ThreadTest7();
     break;
     default:
 	printf("No test specified.\n");

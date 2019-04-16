@@ -218,7 +218,7 @@ bool Interrupt::getTimeslice(){
 }
 //----------------------------------------------------------------------
 // Interrupt::Idle
-// 	Routine called when there is nothing in the ready queue.
+// 	Routine called when there is nothingcalled when there is nothing in the ready queue.
 //
 //	Since something has to be running in order to put a thread
 //	on the ready queue, the only thing to do is to advance 

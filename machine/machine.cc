@@ -61,10 +61,14 @@ Machine::Machine(bool debug)
     mainMemory = new char[MemorySize];
     for (i = 0; i < MemorySize; i++)
       	mainMemory[i] = 0;
+    //add by huhao
+    pageMap = new BitMap(NumPhysPages);
 #ifdef USE_TLB
     tlb = new TranslationEntry[TLBSize];
-    for (i = 0; i < TLBSize; i++)
-	tlb[i].valid = FALSE;
+    for (i = 0; i < TLBSize; i++){
+        tlb[i].valid = FALSE;
+        tlb[i].timestamp = 0;
+    }
     pageTable = NULL;
 #else	// use linear page table
     tlb = NULL;
@@ -211,4 +215,17 @@ void Machine::WriteRegister(int num, int value)
 	// DEBUG('m', "WriteRegister %d, value %d\n", num, value);
 	registers[num] = value;
     }
+
+int Machine::allocateMem(){
+    int p = pageMap->Find();
+    printf("allocating page: %d\n",p);
+    return p;
+}
+
+void Machine::deleteMem(){
+    for(int i=0;i<pageTableSize;i++){
+        pageMap->Clear(pageTable[i].physicalPage);
+        printf("clear page: %d\n",pageTable[i].physicalPage);
+    }
+}
 

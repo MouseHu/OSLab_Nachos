@@ -89,7 +89,7 @@ AddrSpace::AddrSpace(OpenFile *executable)
     pageTable = new TranslationEntry[numPages];
     for (i = 0; i < numPages; i++) {
 	pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
-	pageTable[i].physicalPage = i;
+	pageTable[i].physicalPage = machine->allocateMem();
 	pageTable[i].valid = TRUE;
 	pageTable[i].use = FALSE;
 	pageTable[i].dirty = FALSE;
@@ -106,6 +106,10 @@ AddrSpace::AddrSpace(OpenFile *executable)
     if (noffH.code.size > 0) {
         DEBUG('a', "Initializing code segment, at 0x%x, size %d\n", 
 			noffH.code.virtualAddr, noffH.code.size);
+        // for(int i=0;i<noffH.code.size/pagesize;i++){
+        //      executable->ReadAt(&(machine->mainMemory[noffH.code.virtualAddr]),
+		// // 	noffH.code.size, noffH.code.inFileAddr);
+        // }
         executable->ReadAt(&(machine->mainMemory[noffH.code.virtualAddr]),
 			noffH.code.size, noffH.code.inFileAddr);
     }
@@ -125,6 +129,7 @@ AddrSpace::AddrSpace(OpenFile *executable)
 
 AddrSpace::~AddrSpace()
 {
+   
    delete pageTable;
 }
 
@@ -169,7 +174,11 @@ AddrSpace::InitRegisters()
 //----------------------------------------------------------------------
 
 void AddrSpace::SaveState() 
-{}
+{
+    for(int i=0;i<TLBSize;i++){
+        machine->tlb[i].valid = FALSE;
+    }
+}
 
 //----------------------------------------------------------------------
 // AddrSpace::RestoreState

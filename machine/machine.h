@@ -25,7 +25,7 @@
 #include "utility.h"
 #include "translate.h"
 #include "disk.h"
-
+#include "bitmap.h"
 // Definitions related to the size, and format of user memory
 
 #define PageSize 	SectorSize 	// set the page size equal to
@@ -145,14 +145,16 @@ class Machine {
 
     void Debugger();		// invoke the user program debugger
     void DumpState();		// print the user CPU and memory state 
-
-
+		//add by huhao
+		void LRUTimeStamp(int hit);
+		int allocateMem();
+		void deleteMem();
 // Data structures -- all of these are accessible to Nachos kernel code.
 // "public" for convenience.
 //
 // Note that *all* communication between the user program and the kernel 
 // are in terms of these data structures.
-
+		BitMap *pageMap;
     char *mainMemory;		// physical memory to store user program,
 				// code and data, while executing
     int registers[NumTotalRegs]; // CPU registers, for executing user programs
