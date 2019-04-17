@@ -25,12 +25,13 @@
 #include "system.h"
 #include "syscall.h"
 int TLBAlgoType =0;
+int PageTableAlgoType =0;
 
 //add by huhao 
-int invalidTLB(){
+int invalid(TranslationEntry* entry,int size){
     int insert_index = -1;
-    for(int i =0;i<TLBSize;i++){
-        if(machine->tlb[i].valid ==FALSE){
+    for(int i =0;i<size;i++){
+        if(entry[i].valid ==FALSE){
             insert_index = i;
             break;
         }
@@ -38,29 +39,83 @@ int invalidTLB(){
     return insert_index;
 }
 
-int FIFO(){
-    int insert_index = invalidTLB();
+int FIFO(TranslationEntry* entry,int size){
+    int insert_index = invalid(entry,size);
     if(insert_index!=-1)
         return insert_index;
-    for(int i =TLBSize-1;i>0;i--){
-        machine->tlb[i]=machine->tlb[i-1];
+    for(int i =size-1;i>0;i--){
+        entry[i]=entry[i-1];
     }
     return 0;
 }
 
-int LRU(){
-    int insert_index = invalidTLB();
+int LRU(TranslationEntry* entry,int size){
+    int insert_index = invalid(entry,size);
     if(insert_index!=-1)
         return insert_index;
-    int max_time = machine->tlb[0].timestamp;
+    int max_time = entry[0].timestamp;
     insert_index = 0;
-    for(int i = 1;i<TLBSize;i++){
-        if(machine->tlb[i].timestamp>max_time){
+    for(int i = 1;i<size;i++){
+        if(entry[i].timestamp>max_time){
             insert_index=i;
-            max_time = machine->tlb[i].timestamp;
+            max_time = entry[i].timestamp;
         }
     }
     return insert_index;
+}
+
+
+int DealPageFault(TranslationEntry* entry){
+
+    int badAddr = machine->registers[BadVAddrReg];
+    unsigned int vpn = badAddr/PageSize;
+    int exchange_index = -1;
+    if( machine->pageMap->NumClear() > 0 ){
+
+        entry->valid = true;
+        entry->physicalPage = machine->pageMap->Find();
+        //PmEntry[ userEntry->physicalPage ] = userEntry;
+        exchange_index = entry->physicalPage;
+        //printf("here.%d\n",exchange_index);
+        memcpy(&(machine->mainMemory[entry->physicalPage * PageSize ] ),
+        &(machine->virtualMemory[entry->virtualPage * PageSize]),PageSize );
+    }
+    else{
+
+        switch(PageTableAlgoType){
+            case 0:
+                exchange_index = 0;//MAX(0,invalid(machine->pageTable,machine->pageTableSize));
+                break;
+            case 1:
+                exchange_index = FIFO(machine->pageTable,machine->pageTableSize);
+                break;
+            case 2:
+                exchange_index = LRU(machine->pageTable,machine->pageTableSize);
+                break;
+            default:
+                exchange_index = MAX(0,invalid(machine->pageTable,machine->pageTableSize));
+        }
+        for(int i=0;i<machine->pageTableSize;i++){
+            if(machine->pageTable[i].physicalPage == exchange_index){
+                machine->pageTable[i].valid=FALSE;
+                if(machine->pageTable[i].dirty){
+                    memcpy(&(machine->virtualMemory[machine->pageTable[i].virtualPage * PageSize]),
+                    &(machine->mainMemory[exchange_index * PageSize ] ),PageSize );
+                }
+            }
+        }
+        memcpy(&(machine->mainMemory[exchange_index * PageSize ] ),
+        &(machine->virtualMemory[entry->virtualPage * PageSize]),PageSize );
+        machine->pageTable[vpn].valid = TRUE;
+        machine->pageTable[vpn].virtualPage = vpn;
+        machine->pageTable[vpn].physicalPage = exchange_index; 
+        machine->pageTable[vpn].use = FALSE;
+        machine->pageTable[vpn].dirty = FALSE;
+        machine->pageTable[vpn].readOnly = FALSE;
+        machine->pageTable[vpn].timestamp = 0;
+    }
+    printf("Page Fault.exchange: %d\n",exchange_index);
+    return exchange_index;
 }
 //----------------------------------------------------------------------
 // ExceptionHandler
@@ -95,31 +150,53 @@ ExceptionHandler(ExceptionType which)
 	DEBUG('a', "Shutdown, initiated by user program.\n");
     
    	interrupt->Halt();
-    } 
+    }
     else if ((which == SyscallException) && (type == SC_Exit)){
         printf("program exit.\n");
         machine->deleteMem();
-        interrupt->Halt();
+        IntStatus old = interrupt->SetLevel(IntOff);
+        currentThread->Sleep();//never awake
+        interrupt->SetLevel(old);
+    }
+    else if ((which == SyscallException) && (type == SC_Yield)){
+        printf("program yield.\n");
+        // int nextPC = machine->ReadRegister(NextPCReg);
+        // machine->WriteRegister(PCReg,nextPC);
+        currentThread->Yield();
+
     }
     else if(which==int(PageFaultException)){
+        int badAddr = machine->registers[BadVAddrReg];
+        unsigned int vpn = badAddr/PageSize;
         if(machine->tlb!=NULL){
-            // TLB fault
-            int badAddr = machine->registers[BadVAddrReg];
-            unsigned int vpn = badAddr/PageSize;
-            int insert_index = FIFO();
+            // TLB MISS
+            
+            int insert_index = -1;
             switch(TLBAlgoType){
                 case 0:
-                    insert_index = MAX(0,invalidTLB());
+                    insert_index = MAX(0,invalid(machine->tlb,TLBSize));
                     break;
                 case 1:
-                    insert_index = FIFO();
+                    insert_index = FIFO(machine->tlb,TLBSize);
                     break;
                 case 2:
-                    insert_index = LRU();
+                    insert_index = LRU(machine->tlb,TLBSize);
                     break;
                 default:
-                    insert_index = MAX(0,invalidTLB());
-            } 
+                    insert_index = MAX(0,invalid(machine->tlb,TLBSize));
+            }
+            //printf("test:%d,%d",vpn,machine->pageTable[vpn].valid);
+            if(machine->pageTable[vpn].valid==FALSE ){
+                //Page Fault
+                int exchangePage = DealPageFault(&(machine->pageTable[vpn]));
+                if(exchangePage!=-1){
+                    // change TLB table
+                    for(int i=0;i<TLBSize;i++){
+                        if(machine->tlb[i].physicalPage==exchangePage)
+                            machine->tlb[i].valid = FALSE;
+                    }
+                }
+            }
             machine->tlb[insert_index].valid = TRUE;
             machine->tlb[insert_index].virtualPage = vpn;
             machine->tlb[insert_index].physicalPage = machine->pageTable[vpn].physicalPage; 
@@ -127,14 +204,12 @@ ExceptionHandler(ExceptionType which)
             machine->tlb[insert_index].dirty = FALSE;
             machine->tlb[insert_index].readOnly = FALSE;
             machine->tlb[insert_index].timestamp = 0;
+            
         }
         else{
             //Page Fault
+            DealPageFault(&(machine->pageTable[vpn]));
         }
-        // machine->registers[PrevPCReg] = machine->registers[PCReg];	// for debugging, in case we
-		// 				// are jumping into lala-land
-        // machine->registers[PCReg] = machine->registers[NextPCReg];
-        // machine->registers[NextPCReg] = machine->registers[NextPCReg]+4;
     }
     else{
         printf("Unexpected user mode exception %d %d\n", which, type);

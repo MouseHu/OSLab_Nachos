@@ -264,6 +264,7 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
     // An invalid translation was loaded into the page table or TLB. 
     if (pageFrame >= NumPhysPages) { 
 	DEBUG('a', "*** frame %d > %d!\n", pageFrame, NumPhysPages);
+	//printf("Bus:%d,%d\n",pageFrame,NumPhysPages);
 	return BusErrorException;
     }
     entry->use = TRUE;		// set the use, dirty bits

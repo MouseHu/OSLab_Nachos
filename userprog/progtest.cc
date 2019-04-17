@@ -14,6 +14,10 @@
 #include "addrspace.h"
 #include "synch.h"
 
+void RunUser(int dummy){
+    printf("Running user process:%s\n",currentThread->getName());
+    machine->Run();
+}
 //----------------------------------------------------------------------
 // StartProcess
 // 	Run a user program.  Open the executable, load it into
@@ -23,21 +27,34 @@
 void
 StartProcess(char *filename)
 {
+    Thread* thread = new Thread("Copied thread");
+
     OpenFile *executable = fileSystem->Open(filename);
+    OpenFile *executable2 = fileSystem->Open(filename);
+
     AddrSpace *space;
+    AddrSpace *space2;
 
     if (executable == NULL) {
 	printf("Unable to open file %s\n", filename);
 	return;
     }
-    space = new AddrSpace(executable);    
+    space = new AddrSpace(executable);  
+    space2 = new AddrSpace(executable2);    
     currentThread->space = space;
+    thread->space = space2;
+    thread->Fork(RunUser,1);
 
     delete executable;			// close file
-
+    delete executable2;
+    space2->InitRegisters();		// set the initial register values
+    space2->RestoreState();		// load page table register
+    currentThread->Yield();
     space->InitRegisters();		// set the initial register values
     space->RestoreState();		// load page table register
 
+    
+    //printf("running :%s\n",currentThread->getName());
     machine->Run();			// jump to the user progam
     ASSERT(FALSE);			// machine->Run never returns;
 					// the address space exits

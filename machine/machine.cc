@@ -63,6 +63,9 @@ Machine::Machine(bool debug)
       	mainMemory[i] = 0;
     //add by huhao
     pageMap = new BitMap(NumPhysPages);
+    VMMap = new BitMap(VMSize/VMPages);
+    virtualMemory = new char[VMSize];
+
 #ifdef USE_TLB
     tlb = new TranslationEntry[TLBSize];
     for (i = 0; i < TLBSize; i++){
@@ -224,8 +227,11 @@ int Machine::allocateMem(){
 
 void Machine::deleteMem(){
     for(int i=0;i<pageTableSize;i++){
-        pageMap->Clear(pageTable[i].physicalPage);
-        printf("clear page: %d\n",pageTable[i].physicalPage);
+        if(pageTable[i].valid){
+            pageMap->Clear(pageTable[i].physicalPage);
+            printf("clear page: %d\n",pageTable[i].physicalPage);
+        }
+            
     }
 }
 

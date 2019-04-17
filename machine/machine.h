@@ -35,6 +35,8 @@
 #define NumPhysPages    32
 #define MemorySize 	(NumPhysPages * PageSize)
 #define TLBSize		4		// if there is a TLB, make it small
+#define VMPages 512
+#define VMSize (VMPages * PageSize)
 
 enum ExceptionType { NoException,           // Everything ok!
 		     SyscallException,      // A program executed a system call.
@@ -183,7 +185,8 @@ class Machine {
 
     TranslationEntry *pageTable;
     unsigned int pageTableSize;
-
+		char *virtualMemory;
+		BitMap *VMMap;
   private:
     bool singleStep;		// drop back into the debugger after each
 				// simulated instruction
