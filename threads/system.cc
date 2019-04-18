@@ -16,11 +16,11 @@ Thread *threadToBeDestroyed;  		// the thread that just finished
 Scheduler *scheduler;			// the ready list
 Interrupt *interrupt;			// interrupt status
 Statistics *stats;			// performance metrics
-Timer *timer;				// the hardware timer device,
+//Timer *timer;				// the hardware timer device,
 					// for invoking context switches
 
 //add by huhao SliceTimer to schedule threads
-Timer *sliceTimer;
+//Timer *sliceTimer;
 
 #ifdef FILESYS_NEEDED
 FileSystem  *fileSystem;
@@ -151,7 +151,7 @@ Initialize(int argc, char **argv)
     interrupt = new Interrupt;			// start up interrupt handling
     scheduler = new Scheduler();		// initialize the ready queue
     //if (randomYield)				// start the timer (if needed)
-	timer = new Timer(TimerInterruptHandler, 0, randomYield);
+	//timer = new Timer(TimerInterruptHandler, 0, randomYield);
     //sliceTimer = new Timer(TimeSliceHandler,0,FALSE);      
     threadToBeDestroyed = NULL;
 
@@ -205,10 +205,10 @@ Cleanup()
     delete synchDisk;
 #endif
     
-    delete timer;
+    //delete timer;
     delete scheduler;
     delete interrupt;
-    delete sliceTimer;
+    //delete sliceTimer;
     Exit(0);
 }
 

@@ -151,6 +151,7 @@ class Machine {
 		void LRUTimeStamp(int hit);
 		int allocateMem();
 		void deleteMem();
+		void suspendCurrentThread();
 // Data structures -- all of these are accessible to Nachos kernel code.
 // "public" for convenience.
 //

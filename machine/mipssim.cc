@@ -39,10 +39,12 @@ Machine::Run()
 	int i = 0;
 	// pageMap->Print();
     for (;;) {
-		// if(i++%10==0)
-		// 	printf("here.%d,%d\n",i,instr->value);
+		 //if(i++%1001==0)
+		 //	printf("here.%d,%d\n",i,instr->opCode);
         OneInstruction(instr);
+		//printf("1223\n");
 	interrupt->OneTick();
+	//printf("13\n");
 	if (singleStep && (runUntilTime <= stats->totalTicks))
 	  Debugger();
     }
@@ -103,11 +105,13 @@ Machine::OneInstruction(Instruction *instr)
 				// in the future
 
     // Fetch instruction 
+	DEBUG('a',"feteching instr.\n");
     if (!machine->ReadMem(registers[PCReg], 4, &raw))
 	return;			// exception occurred
+	
     instr->value = raw;
     instr->Decode();
-
+	DEBUG('a',"finish feteching instr %d %d %d %d %d.\n",instr->opCode,instr->value,instr->rs,instr->rt,instr->extra);
     if (DebugIsEnabled('m')) {
        struct OpString *str = &opStrings[instr->opCode];
 
@@ -560,12 +564,17 @@ Machine::OneInstruction(Instruction *instr)
     
     // Do any delayed load operation
     DelayedLoad(nextLoadReg, nextLoadValue);
-    
+	
+    //printf("here?%d:%d\n",registers[PrevPCReg],registers[PCReg]);
     // Advance program counters.
+	//printf("1223\n");
     registers[PrevPCReg] = registers[PCReg];	// for debugging, in case we
 						// are jumping into lala-land
+	//printf("123\n");
     registers[PCReg] = registers[NextPCReg];
+	//printf("123\n");
     registers[NextPCReg] = pcAfter;
+	//printf("123\n");
 }
 
 //----------------------------------------------------------------------

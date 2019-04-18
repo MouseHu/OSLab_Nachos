@@ -256,6 +256,27 @@ Thread::Yield ()
     }
     (void) interrupt->SetLevel(oldLevel);
 }
+
+void
+Thread::Suspend()
+{
+    Thread *nextThread;
+    IntStatus oldLevel = interrupt->SetLevel(IntOff);
+    
+    ASSERT(this == currentThread);
+    
+    DEBUG('t', "Suspending thread \"%s\"\n", getName());
+    
+    scheduler->ReadyToRun(this);
+    currentThread->setStatus(SUSPENDED);
+    nextThread = scheduler->FindNextToRun();
+
+    //printf("\tthread switching:\t%s -> %s\n",this->getName(),nextThread->getName());
+    if (nextThread != NULL) {
+	scheduler->Run(nextThread);
+    }
+    (void) interrupt->SetLevel(oldLevel);
+}
 //add by huhao
 void
 Thread::ForcedYield ()

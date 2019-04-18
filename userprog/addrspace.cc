@@ -108,10 +108,15 @@ AddrSpace::AddrSpace(OpenFile *executable)
     if (noffH.code.size > 0) {
         DEBUG('a', "Initializing code segment, at 0x%x, size %d\n", 
 			noffH.code.virtualAddr, noffH.code.size);
-        
+        char * debugcode = new char[noffH.code.size];
         // for(int i=0;i<numCodePage;i++){
         //      executable->ReadAt(&(machine->mainMemory[pageTable[i].physicalPage*PageSize]),
 		//  	PageSize, noffH.code.inFileAddr+i*PageSize);
+        // }
+        // executable->ReadAt(debugcode,
+		//  	noffH.code.size, noffH.code.inFileAddr);
+        // for(int i =0;i<noffH.code.size/4;i++){
+        //     printf("instr %d:%02X\n",i,*((int*)(debugcode+4*i)));
         // }
         for(int i=0;i<numCodePage;i++){
              executable->ReadAt(&(machine->virtualMemory[pageTable[i].virtualPage*PageSize]),

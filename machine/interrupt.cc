@@ -162,11 +162,11 @@ Interrupt::OneTick()
 	stats->userTicks += UserTick;
     }
     DEBUG('i', "\n== Tick %d ==\n", stats->totalTicks);
-
 // check any pending interrupts are now ready to fire
     ChangeLevel(IntOn, IntOff);		// first, turn off interrupts
 					// (interrupt handlers run with
 					// interrupts disabled)
+    DEBUG('a', "\n== Tick %d ==\n", stats->totalTicks);
     while (CheckIfDue(FALSE))		// check for pending interrupts
 	;
     ChangeLevel(IntOff, IntOn);		// re-enable interrupts
@@ -184,7 +184,7 @@ Interrupt::OneTick()
         currentThread->ForcedYield();
         
     }
-	
+	DEBUG('a', "\n== Tick %d ==\n", stats->totalTicks);
 	status = old;
 
 }
@@ -312,17 +312,14 @@ Interrupt::CheckIfDue(bool advanceClock)
 {
     MachineStatus old = status;
     int when;
-
     ASSERT(level == IntOff);		// interrupts need to be disabled,
 					// to invoke an interrupt handler
     if (DebugIsEnabled('i'))
 	DumpState();
     PendingInterrupt *toOccur = 
 		(PendingInterrupt *)pending->SortedRemove(&when);
-
     if (toOccur == NULL)		// no pending interrupts
 	return FALSE;			
-
     if (advanceClock && when > stats->totalTicks) {	// advance the clock
 	stats->idleTicks += (when - stats->totalTicks);
 	stats->totalTicks = when;
@@ -337,7 +334,6 @@ Interrupt::CheckIfDue(bool advanceClock)
 	 pending->SortedInsert(toOccur, when);
 	 return FALSE;
     }
-
     DEBUG('i', "Invoking interrupt handler for the %s at time %d\n", 
 			intTypeNames[toOccur->type], toOccur->when);
 #ifdef USER_PROGRAM
@@ -353,6 +349,7 @@ Interrupt::CheckIfDue(bool advanceClock)
     inHandler = FALSE;
     delete toOccur;
     return TRUE;
+    
 }
 
 //----------------------------------------------------------------------

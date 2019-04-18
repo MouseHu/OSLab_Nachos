@@ -235,3 +235,14 @@ void Machine::deleteMem(){
     }
 }
 
+void Machine::suspendCurrentThread(){
+    for(int i=0;i<pageTableSize;i++){
+        pageTable[i].valid=FALSE;
+        memcpy(&(virtualMemory[pageTable[i].virtualPage*PageSize]),
+            &(mainMemory[pageTable[i].physicalPage*PageSize]),PageSize
+        );
+        deleteMem();
+    }
+
+}
+

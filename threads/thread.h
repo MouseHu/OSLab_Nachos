@@ -55,7 +55,7 @@
 // Size of the thread's private execution stack.
 // WATCH OUT IF THIS ISN'T BIG ENOUGH!!!!!
 //#define StackSize	(4 * 1024)	// in words
-#define StackSize	(4 * 8192)	// in words
+#define StackSize	(4 * 65536)	// in words
 //add by huhao
 #define MIN_PRIOR 1000
 #define MAX_PRIOR 0
@@ -64,7 +64,7 @@
 //add by huhao
 
 // Thread state
-enum ThreadStatus { JUST_CREATED, RUNNING, READY, BLOCKED };
+enum ThreadStatus { JUST_CREATED, RUNNING, READY, BLOCKED ,SUSPENDED};
 
 // external function, dummy routine whose sole job is to call Thread::Print
 extern void ThreadPrint(int arg);	 
@@ -99,6 +99,7 @@ class Thread {
     void Fork(VoidFunctionPtr func, int arg); 	// Make thread run (*func)(arg)
     void Yield();  				// Relinquish the CPU if any 
 						// other thread is runnable
+    void Suspend();
     void ForcedYield();
     void Sleep();  				// Put the thread to sleep and 
 						// relinquish the processor

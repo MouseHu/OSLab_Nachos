@@ -16,7 +16,9 @@
 
 void RunUser(int dummy){
     printf("Running user process:%s\n",currentThread->getName());
+    //machine->pageMap->Print();
     machine->Run();
+    
 }
 //----------------------------------------------------------------------
 // StartProcess
@@ -28,7 +30,7 @@ void
 StartProcess(char *filename)
 {
     Thread* thread = new Thread("Copied thread");
-
+    
     OpenFile *executable = fileSystem->Open(filename);
     OpenFile *executable2 = fileSystem->Open(filename);
 
@@ -50,11 +52,12 @@ StartProcess(char *filename)
     space2->InitRegisters();		// set the initial register values
     space2->RestoreState();		// load page table register
     currentThread->Yield();
+
     space->InitRegisters();		// set the initial register values
     space->RestoreState();		// load page table register
 
     
-    //printf("running :%s\n",currentThread->getName());
+    printf("program: %s start\n",currentThread->getName());
     machine->Run();			// jump to the user progam
     ASSERT(FALSE);			// machine->Run never returns;
 					// the address space exits
