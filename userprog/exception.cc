@@ -81,7 +81,7 @@ int DealReversePageFault(TranslationEntry* reversedPageTable){
         //PmEntry[ userEntry->physicalPage ] = userEntry;
         exchange_index = physicalPage;
         entry->virtualPage = vpn;
-        printf("here.%d\n",(int*)machine->virtualMemory);
+        //printf("here.%d\n",(int*)machine->virtualMemory);
         memcpy(&(machine->mainMemory[entry->physicalPage * PageSize ] ),
         &(machine->virtualMemory[entry->virtualPage * PageSize]),PageSize );
         entry->use = FALSE;
@@ -230,6 +230,8 @@ ExceptionHandler(ExceptionType which)
         printf("program suspended (yield).\n");
         machine->suspendCurrentThread();
         currentThread->Suspend();
+        int nextPC = machine->ReadRegister(NextPCReg);
+        machine->WriteRegister(PCReg,nextPC);
     }
     // else if ((which == SyscallException) && (type == SC_Yield)){
     //     printf("program yield.\n");

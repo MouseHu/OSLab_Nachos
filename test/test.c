@@ -9,6 +9,6 @@ for(i =0;i<20;i++){
 	}	
 	//Yield();
 }
-
+Yield();
 Exit(0);
 }

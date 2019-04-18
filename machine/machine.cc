@@ -227,23 +227,51 @@ int Machine::allocateMem(){
 }
 
 void Machine::deleteMem(){
+    #ifdef REVERSE_PAGETABLE
+    for(int i=0;i<NumPhysPages;i++){
+        if(reversedPageTable[i].valid){
+            pageMap->Clear(i);
+            printf("clear page: %d\n",i);
+        }
+        reversedPageTable[i].valid=FALSE;
+            
+    }
+    #else
     for(int i=0;i<pageTableSize;i++){
         if(pageTable[i].valid){
             pageMap->Clear(pageTable[i].physicalPage);
             printf("clear page: %d\n",pageTable[i].physicalPage);
         }
+        pageTable[i].valid=FALSE;
             
     }
+    #endif
 }
 
 void Machine::suspendCurrentThread(){
+    #ifdef REVERSE_PAGETABLE
+    for(int i=0;i<NumPhysPages;i++){
+        if(!reversedPageTable[i].valid)
+            continue;
+        
+        memcpy(&(virtualMemory[reversedPageTable[i].virtualPage*PageSize]),
+            &(mainMemory[i*PageSize]),PageSize
+        );
+        
+    }
+    deleteMem();
+    #else
     for(int i=0;i<pageTableSize;i++){
-        pageTable[i].valid=FALSE;
+        if(!pageTable[i].valid)
+            continue;
+        //pageTable[i].valid=FALSE;
         memcpy(&(virtualMemory[pageTable[i].virtualPage*PageSize]),
             &(mainMemory[pageTable[i].physicalPage*PageSize]),PageSize
         );
-        deleteMem();
+        
     }
+    deleteMem();
+    #endif
 
 }
 
