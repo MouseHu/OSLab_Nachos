@@ -79,6 +79,12 @@ std::string Thread::getStatus(){
         case BLOCKED:
             state_string = "BLOCKED";
             break; 
+        case SUSPENDED:
+            state_string = "SUSPENDED";
+            break; 
+        case SUSPENDED_BLOCKED:
+            state_string = "SUSPENDED_BLOCKED";
+            break; 
     }
     return state_string;
 }
@@ -219,6 +225,20 @@ Thread::Finish ()
     // not reached
 }
 
+
+void
+Thread::Load ()
+{
+    ASSERT(status==SUSPENDED || status==SUSPENDED_BLOCKED)
+    if(status == SUSPENDED){
+        status = READY;
+    }
+    else
+    {
+        status = BLOCKED;
+    }
+    
+}
 //----------------------------------------------------------------------
 // Thread::Yield
 // 	Relinquish the CPU if any other thread is ready to run.
@@ -266,7 +286,7 @@ Thread::Suspend()
     ASSERT(this == currentThread);
     
     DEBUG('t', "Suspending thread \"%s\"\n", getName());
-    
+    //if(currentThread->)
     scheduler->ReadyToRun(this);
     currentThread->setStatus(SUSPENDED);
     nextThread = scheduler->FindNextToRun();
@@ -338,6 +358,27 @@ Thread::Sleep ()
     scheduler->Run(nextThread); // returns when we've been signalled
 }
 
+void
+Thread::SuspendSleep ()
+{
+    Thread *nextThread;
+    
+    ASSERT(this == currentThread);
+    ASSERT(interrupt->getLevel() == IntOff);
+    
+    DEBUG('t', "Sleeping thread \"%s\"\n", getName());
+
+    status = SUSPENDED_BLOCKED;
+    //modified by huhao
+    nextThread= interrupt->getTimeslice()?scheduler->SliceFindNextToRun():scheduler->FindNextToRun();
+    while (nextThread == NULL){
+        interrupt->Idle();	// no one to run, wait for an interrupt
+        nextThread= interrupt->getTimeslice()?scheduler->SliceFindNextToRun():scheduler->FindNextToRun();
+    }
+	//printf("\tthread switching:\t%s -> %s\n",this->getName(),nextThread->getName());
+    DEBUG('t',"***next running thread:%s ***\n",nextThread->getName());    
+    scheduler->Run(nextThread); // returns when we've been signalled
+}
 //----------------------------------------------------------------------
 // ThreadFinish, InterruptEnable, ThreadPrint
 //	Dummy functions because C++ does not allow a pointer to a member

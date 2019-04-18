@@ -86,7 +86,22 @@ AddrSpace::AddrSpace(OpenFile *executable)
     DEBUG('a', "Initializing address space, num pages %d, size %d\n", 
 					numPages, size);
 // first, set up the translation 
+    #ifdef REVERSE_PAGETABLE
+    reversedPageTable = new TranslationEntry[NumPhysPages];
+    for (i = 0; i < numPages; i++) {
+	reversedPageTable[i].virtualPage = -1;	// for now, virtual page # = phys page #
+	reversedPageTable[i].physicalPage =i ;//machine->allocateMem();
+	//pageTable[i].valid = TRUE; // Nachos Lab4 !!!
+    reversedPageTable[i].valid = FALSE;
+	reversedPageTable[i].use = FALSE;
+	reversedPageTable[i].dirty = FALSE;
+	reversedPageTable[i].readOnly = FALSE;  // if the code segment was entirely on 
+					// a separate page, we could set its 
+					// pages to be read-only
+    }
+    #else
     pageTable = new TranslationEntry[numPages];
+    
     for (i = 0; i < numPages; i++) {
 	pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
 	pageTable[i].physicalPage = -1;//machine->allocateMem();
@@ -98,7 +113,7 @@ AddrSpace::AddrSpace(OpenFile *executable)
 					// a separate page, we could set its 
 					// pages to be read-only
     }
-    
+    #endif
 // zero out the entire address space, to zero the unitialized data segment 
 // and the stack segment
     // bzero(machine->mainMemory, size);
@@ -119,7 +134,7 @@ AddrSpace::AddrSpace(OpenFile *executable)
         //     printf("instr %d:%02X\n",i,*((int*)(debugcode+4*i)));
         // }
         for(int i=0;i<numCodePage;i++){
-             executable->ReadAt(&(machine->virtualMemory[pageTable[i].virtualPage*PageSize]),
+             executable->ReadAt(&(machine->virtualMemory[i*PageSize]),
 		 	PageSize, noffH.code.inFileAddr+i*PageSize);
         }
         // executable->ReadAt(&(machine->mainMemory[noffH.code.virtualAddr]),
@@ -129,7 +144,7 @@ AddrSpace::AddrSpace(OpenFile *executable)
         DEBUG('a', "Initializing data segment, at 0x%x, size %d\n", 
 			noffH.initData.virtualAddr, noffH.initData.size);
         for(int i=0;i<divRoundUp(noffH.initData.size, PageSize);i++){
-             executable->ReadAt(&(machine->virtualMemory[pageTable[i+numCodePage].virtualPage*PageSize]),
+             executable->ReadAt(&(machine->virtualMemory[(i+numCodePage)*PageSize]),
 		 	PageSize, noffH.initData.inFileAddr+i*PageSize);
         }
         // executable->ReadAt(&(machine->mainMemory[noffH.initData.virtualAddr]),
@@ -148,8 +163,11 @@ AddrSpace::AddrSpace(OpenFile *executable)
 
 AddrSpace::~AddrSpace()
 {
-   
+   #ifdef REVERSE_PAGETABLE
+   delete reversedPageTable;
+   #else
    delete pageTable;
+   #endif
 }
 
 //----------------------------------------------------------------------
@@ -209,6 +227,10 @@ void AddrSpace::SaveState()
 
 void AddrSpace::RestoreState() 
 {
+    #ifdef REVERSE_PAGETABLE
+    machine->reversedPageTable = reversedPageTable;
+    #else
     machine->pageTable = pageTable;
     machine->pageTableSize = numPages;
+    #endif
 }

@@ -73,6 +73,7 @@ Machine::Machine(bool debug)
         tlb[i].timestamp = 0;
     }
     pageTable = NULL;
+    reversedPageTable = NULL;
 #else	// use linear page table
     tlb = NULL;
     pageTable = NULL;

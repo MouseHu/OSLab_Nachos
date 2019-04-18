@@ -209,7 +209,7 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
     unsigned int pageFrame;
 
     DEBUG('a', "\tTranslate 0x%x, %s: ", virtAddr, writing ? "write" : "read");
-
+	//DBUG('a',"");
 // check for alignment errors
     if (((size == 4) && (virtAddr & 0x3)) || ((size == 2) && (virtAddr & 0x1))){
 	DEBUG('a', "alignment problem at %d, size %d!\n", virtAddr, size);
@@ -227,6 +227,8 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
     offset = (unsigned) virtAddr % PageSize;
     //DEBUG('a', "%d!\n", vpn);
     if (tlb == NULL) {		// => page table => vpn is index into table
+	#ifdef REVERSE_PAGETABLE
+	#else
 	if (vpn >= pageTableSize) {
 	    DEBUG('a', "virtual page # %d too large for page table size %d!\n", 
 			virtAddr, pageTableSize);
@@ -237,13 +239,14 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
 	    return PageFaultException;
 	}
 	entry = &pageTable[vpn];
+	#endif
     } else {
         for (entry = NULL, i = 0; i < TLBSize; i++)
     	    if (tlb[i].valid && (tlb[i].virtualPage == vpn)) {
 		entry = &tlb[i];			// FOUND!
 		LRUTimeStamp(i);
 		stats->tlb_hit+=1;
-		
+
 		break;
 	    }
 	if (entry == NULL) {				// not found
@@ -282,10 +285,16 @@ void Machine::LRUTimeStamp(int hit){
 		tlb[i].timestamp+=1;
 	}
 	tlb[hit].timestamp =0;
+	#ifdef REVERSE_PAGETABLE
+	for(int i =0;i<NumPhysPages;i++){
+		reversedPageTable[i].timestamp+=1;
+	}
+	reversedPageTable[tlb[hit].physicalPage].timestamp=0;
+	#else
 	for(int i =0;i<PageSize;i++){
 		pageTable[i].timestamp+=1;
 	}
-	//printf("%d",tlb[hit].virtualPage);
 	pageTable[tlb[hit].virtualPage].timestamp=0;
-	//printf("here.\n");
+	#endif
+
 }

@@ -185,6 +185,7 @@ class Machine {
 					// "read-only" to Nachos kernel code
 
     TranslationEntry *pageTable;
+		TranslationEntry *reversedPageTable;
     unsigned int pageTableSize;
 		char *virtualMemory;
 		BitMap *VMMap;

@@ -32,9 +32,14 @@ class AddrSpace {
     void RestoreState();		// info on a context switch 
 
   private:
+  #ifdef REVERSE_PAGETABLE
+    TranslationEntry *reversedPageTable;	// add by huhao
+  #else
     TranslationEntry *pageTable;	// Assume linear page table translation
 					// for now!
-    unsigned int numPages;		// Number of pages in the virtual 
+
+  #endif
+      unsigned int numPages;		// Number of pages in the virtual 
 					// address space
 };
 

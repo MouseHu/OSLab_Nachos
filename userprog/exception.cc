@@ -64,9 +64,70 @@ int LRU(TranslationEntry* entry,int size){
     return insert_index;
 }
 
+int DealReversePageFault(TranslationEntry* reversedPageTable){
+
+    DEBUG('a',"entering deal reversed page fault.\n");
+    int badAddr = machine->registers[BadVAddrReg];
+    unsigned int vpn = badAddr/PageSize;
+    int exchange_index = -1;
+    if( machine->pageMap->NumClear() > 0 ){
+        int physicalPage = machine->pageMap->Find();
+        //printf("here.%d\n",exchange_index);
+        TranslationEntry* entry = &(reversedPageTable[physicalPage]);
+        //printf("here.%d\n",reversedPageTable);
+        entry->valid = true;
+        entry->physicalPage = physicalPage;
+        //printf("find: %d %d\n",entry->physicalPage,entry->virtualPage);
+        //PmEntry[ userEntry->physicalPage ] = userEntry;
+        exchange_index = physicalPage;
+        entry->virtualPage = vpn;
+        printf("here.%d\n",(int*)machine->virtualMemory);
+        memcpy(&(machine->mainMemory[entry->physicalPage * PageSize ] ),
+        &(machine->virtualMemory[entry->virtualPage * PageSize]),PageSize );
+        entry->use = FALSE;
+        entry->dirty = FALSE;
+        entry->readOnly = FALSE;
+        entry->timestamp=0;
+    }
+    else{
+
+        switch(PageTableAlgoType){
+            case 0:
+                exchange_index = 0;//MAX(0,invalid(machine->pageTable,machine->pageTableSize));
+                break;
+            case 1:
+                exchange_index = FIFO(machine->reversedPageTable,NumPhysPages);
+                break;
+            case 2:
+                exchange_index = LRU(machine->reversedPageTable,NumPhysPages);
+                break;
+            default:
+                exchange_index = MAX(0,invalid(machine->reversedPageTable,NumPhysPages));
+        }
+        printf("%d\n",exchange_index);
+        if((machine->reversedPageTable[exchange_index].valid==TRUE)){
+            if(machine->reversedPageTable[exchange_index].dirty){
+                    memcpy(&(machine->virtualMemory[machine->reversedPageTable[exchange_index].virtualPage * PageSize]),
+                    &(machine->mainMemory[exchange_index * PageSize ] ),PageSize );
+                }
+        }
+
+        memcpy(&(machine->mainMemory[exchange_index * PageSize ] ),
+        &(machine->virtualMemory[vpn * PageSize]),PageSize );
+        machine->reversedPageTable[exchange_index].valid = TRUE;
+        machine->reversedPageTable[exchange_index].virtualPage = vpn;
+        machine->reversedPageTable[exchange_index].physicalPage = exchange_index; 
+        machine->reversedPageTable[exchange_index].use = FALSE;
+        machine->reversedPageTable[exchange_index].dirty = FALSE;
+        machine->reversedPageTable[exchange_index].readOnly = FALSE;
+        machine->reversedPageTable[exchange_index].timestamp = 0;
+    }
+    printf("(ReversePageTable) Page Fault.exchanging physical page: %d\n",exchange_index);
+    return exchange_index;
+}
 
 int DealPageFault(TranslationEntry* entry){
-
+    DEBUG('a',"entering deal page fault.\n");
     int badAddr = machine->registers[BadVAddrReg];
     unsigned int vpn = badAddr/PageSize;
     int exchange_index = -1;
@@ -102,7 +163,7 @@ int DealPageFault(TranslationEntry* entry){
         }
         printf("%d\n",exchange_index);
         for(int i=0;i<machine->pageTableSize;i++){
-            if((machine->pageTable[i].physicalPage == exchange_index)&&(machine->pageTable[i].valid=FALSE)){
+            if((machine->pageTable[i].physicalPage == exchange_index)&&(machine->pageTable[i].valid==TRUE)){
                 machine->pageTable[i].valid=FALSE;
                 if(machine->pageTable[i].dirty){
                     memcpy(&(machine->virtualMemory[machine->pageTable[i].virtualPage * PageSize]),
@@ -197,11 +258,33 @@ ExceptionHandler(ExceptionType which)
                 default:
                     insert_index = MAX(0,invalid(machine->tlb,TLBSize));
             }
-            //printf("test:%d,%d",vpn,badAddr);
-            
+            //printf("test:%d,%d\n",vpn,badAddr);
+            int exchangePage=-1;
+            #ifdef REVERSE_PAGETABLE
+            for(int i=0;i<NumPhysPages;i++){
+                if((machine->reversedPageTable[i].valid==TRUE)&&(machine->reversedPageTable[i].virtualPage == vpn)){
+                    exchangePage = i;
+                    break;
+                }
+            }
+            //printf("test2:%d\n",exchangePage);
+            if(exchangePage==-1){
+                //Page Fault
+                exchangePage = DealReversePageFault(machine->reversedPageTable);
+                if(exchangePage!=-1){
+                    // change TLB table
+                    for(int i=0;i<TLBSize;i++){
+                        if(machine->tlb[i].physicalPage==exchangePage)
+                            machine->tlb[i].valid = FALSE;
+                    }
+                }
+            }
+            #else
+
             if(machine->pageTable[vpn].valid==FALSE ){
                 //Page Fault
                 int exchangePage = DealPageFault(&(machine->pageTable[vpn]));
+                
                 if(exchangePage!=-1){
                     // change TLB table
                     for(int i=0;i<TLBSize;i++){
@@ -211,9 +294,10 @@ ExceptionHandler(ExceptionType which)
                 }
 
             }
+            #endif
             machine->tlb[insert_index].valid = TRUE;
             machine->tlb[insert_index].virtualPage = vpn;
-            machine->tlb[insert_index].physicalPage = machine->pageTable[vpn].physicalPage; 
+            machine->tlb[insert_index].physicalPage = exchangePage; 
             machine->tlb[insert_index].use = FALSE;
             machine->tlb[insert_index].dirty = FALSE;
             machine->tlb[insert_index].readOnly = FALSE;
@@ -221,10 +305,15 @@ ExceptionHandler(ExceptionType which)
             //printf("test:%d,%d %d %d\n",insert_index,vpn,machine->pageTable[vpn].physicalPage,machine->pageTable[vpn].valid);
             //int nextPC = machine->ReadRegister(NextPCReg);
             //machine->WriteRegister(PCReg,nextPC);
+            
         }
         else{
             //Page Fault
+            #ifdef REVERSE_PAGETABLE
+            DealReversePageFault(machine->reversedPageTable);
+            #else
             DealPageFault(&(machine->pageTable[vpn]));
+            #endif
         }
     }
     else{

@@ -64,7 +64,7 @@
 //add by huhao
 
 // Thread state
-enum ThreadStatus { JUST_CREATED, RUNNING, READY, BLOCKED ,SUSPENDED};
+enum ThreadStatus { JUST_CREATED, RUNNING, READY, BLOCKED ,SUSPENDED,SUSPENDED_BLOCKED};
 
 // external function, dummy routine whose sole job is to call Thread::Print
 extern void ThreadPrint(int arg);	 
@@ -100,6 +100,8 @@ class Thread {
     void Yield();  				// Relinquish the CPU if any 
 						// other thread is runnable
     void Suspend();
+    void SuspendSleep();
+    void Load();
     void ForcedYield();
     void Sleep();  				// Put the thread to sleep and 
 						// relinquish the processor
