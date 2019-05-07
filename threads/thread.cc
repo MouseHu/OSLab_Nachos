@@ -107,6 +107,7 @@ Thread::Thread(char* threadName,int prior)
         printf("thread pool overflow.\n");
     ASSERT(threadID!=-1) //Thread 
     //add by huhao
+
 #ifdef USER_PROGRAM
     space = NULL;
 #endif
@@ -219,7 +220,6 @@ Thread::Finish ()
     ASSERT(this == currentThread);
     
     DEBUG('t', "Finishing thread \"%s\"\n", getName());
-    
     threadToBeDestroyed = currentThread;
     Sleep();					// invokes SWITCH
     // not reached

@@ -24,6 +24,8 @@
 #include "copyright.h"
 #include "system.h"
 #include "syscall.h"
+
+
 int TLBAlgoType =2 ;
 int PageTableAlgoType =2;
 
@@ -255,6 +257,71 @@ void WriteHandler(){
     //machine->WriteRegister(2,success);
     machine->PCAdvance();
 }
+
+void YieldHandler(){
+    printf("SC Yield\n");
+    machine->PCAdvance();
+    currentThread->Yield();
+}
+
+void JoinHandler(){
+    printf("SC Join\n");
+    int threadID = machine->ReadRegister(4);
+    while(threads_occupied[threadID]){
+        currentThread->Yield();
+    }
+    machine->PCAdvance();
+}
+
+void SuspendHanlder(){
+    printf("program suspended (yield).\n");
+    machine->suspendCurrentThread();
+    currentThread->Suspend();
+    machine->PCAdvance();
+}
+void ExitHanlder(){
+    printf("SC Exit\n");
+    int status = machine->ReadRegister(4);
+    printf("program exit with status: %d\n",status);
+    machine->PCAdvance();
+    currentThread->Finish();
+}
+void ExecRun(int executable){
+    printf("Running user process:%s\n",currentThread->getName());
+    AddrSpace *space;
+    space = new AddrSpace((OpenFile*)executable);     
+    currentThread->space = space;
+    delete (OpenFile*)executable;			// close file
+    space->InitRegisters();		// set the initial register values
+    space->RestoreState();		// load page table register
+    machine->Run();
+}
+
+void ForkRun(int func_pc){
+    currentThread->space->InitRegisters();
+    currentThread->space->RestoreState();
+    machine->WriteRegister(PCReg,func_pc);
+    machine->WriteRegister(NextPCReg,func_pc+4);
+    machine->Run();
+}
+void ExecHanlder(){
+    printf("SC Exec\n");
+    char* name = ReadFileName();
+    Thread* thread = new Thread("Exec",1000);
+    OpenFile *executable = fileSystem->Open(name);
+    thread->Fork(ExecRun,(int)executable);
+    machine->WriteRegister(2,thread->getThreadID());
+    machine->PCAdvance();
+}
+
+void ForkHandler(){
+    printf("SC Fork\n");
+    int func_pc = machine->ReadRegister(4);
+    Thread* thread = new Thread("Fork");
+    thread->space=currentThread->space;
+    thread->Fork(ForkRun,0);
+    machine->PCAdvance();
+}
 //----------------------------------------------------------------------
 // ExceptionHandler
 // 	Entry point into the Nachos kernel.  Called when a user program
@@ -292,13 +359,13 @@ ExceptionHandler(ExceptionType which)
                 interrupt->Halt();
                 break;
             case SC_Exit:
-                printf("program suspended (yield).\n");
-                machine->suspendCurrentThread();
-                currentThread->Suspend();
-                machine->PCAdvance();
+                ExitHanlder();
                 break;
             case SC_Yield:
-                printf("Yield:Not Implemented\n");
+                YieldHandler();
+                break;
+            case SC_Join:
+                JoinHandler();
                 break;
             case SC_Create:
                 CreateHandler();

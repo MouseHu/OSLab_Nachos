@@ -68,7 +68,6 @@ enum ThreadStatus { JUST_CREATED, RUNNING, READY, BLOCKED ,SUSPENDED,SUSPENDED_B
 
 // external function, dummy routine whose sole job is to call Thread::Print
 extern void ThreadPrint(int arg);	 
-
 // The following class defines a "thread control block" -- which
 // represents a single thread of execution.
 //
@@ -138,6 +137,7 @@ class Thread {
       int allocateThreadID();
       int getPriority();
       void setPriority(int p);
+
     //add by huhao
 
 #ifdef USER_PROGRAM

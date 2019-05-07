@@ -186,8 +186,11 @@ AddrSpace::InitRegisters()
 {
     int i;
 
-    for (i = 0; i < NumTotalRegs; i++)
-	machine->WriteRegister(i, 0);
+    for (i = 0; i < NumTotalRegs; i++){
+        machine->WriteRegister(i, 0);
+        reg[i]=0;
+    }
+	    
 
     // Initial program counter -- must be location of "Start"
     machine->WriteRegister(PCReg, 0);	
@@ -216,6 +219,8 @@ void AddrSpace::SaveState()
     for(int i=0;i<TLBSize;i++){
         machine->tlb[i].valid = FALSE;
     }
+    for (int i = 0; i < NumTotalRegs; i++)
+	    reg[i] = machine->ReadRegister(i);
 }
 
 //----------------------------------------------------------------------
@@ -234,4 +239,6 @@ void AddrSpace::RestoreState()
     machine->pageTable = pageTable;
     machine->pageTableSize = numPages;
     #endif
+    for (int i = 0; i < NumTotalRegs; i++)
+	    machine->WriteRegister(i,reg[i]);
 }
