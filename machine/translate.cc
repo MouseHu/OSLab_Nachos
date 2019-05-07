@@ -109,7 +109,6 @@ Machine::ReadMem(int addr, int size, int *value)
     int physicalAddress;
     
     DEBUG('a', "Reading VA 0x%x, size %d\n", addr, size);
-    
     exception = Translate(addr, &physicalAddress, size, FALSE);
     if (exception != NoException) {
 	machine->RaiseException(exception, addr);
@@ -246,7 +245,6 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
 		entry = &tlb[i];			// FOUND!
 		LRUTimeStamp(i);
 		stats->tlb_hit+=1;
-
 		break;
 	    }
 	if (entry == NULL) {				// not found
@@ -291,7 +289,7 @@ void Machine::LRUTimeStamp(int hit){
 	}
 	reversedPageTable[tlb[hit].physicalPage].timestamp=0;
 	#else
-	for(int i =0;i<PageSize;i++){
+	for(int i =0;i<pageTableSize;i++){
 		pageTable[i].timestamp+=1;
 	}
 	pageTable[tlb[hit].virtualPage].timestamp=0;

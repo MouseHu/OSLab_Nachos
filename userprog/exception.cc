@@ -24,7 +24,7 @@
 #include "copyright.h"
 #include "system.h"
 #include "syscall.h"
-int TLBAlgoType =2  ;
+int TLBAlgoType =2 ;
 int PageTableAlgoType =2;
 
 //add by huhao 
@@ -135,7 +135,6 @@ int DealPageFault(TranslationEntry* entry){
 
         entry->valid = true;
         entry->physicalPage = machine->pageMap->Find();
-        //printf("find: %d %d\n",entry->physicalPage,entry->virtualPage);
         //PmEntry[ userEntry->physicalPage ] = userEntry;
         exchange_index = entry->physicalPage;
         //printf("here.%d\n",exchange_index);
@@ -181,8 +180,80 @@ int DealPageFault(TranslationEntry* entry){
         machine->pageTable[vpn].readOnly = FALSE;
         machine->pageTable[vpn].timestamp = 0;
     }
-    printf("Page Fault.exchanging physical page: %d\n",exchange_index);
+    printf("Page Fault. exchanging physical page: %d\n",exchange_index);
     return exchange_index;
+}
+char* ReadFileName(){
+    char* name = new char[20];
+    //char name[20];
+    int name_addr = machine->ReadRegister(4);
+    int data=100;
+    int i =0;
+    while(char(data)!='\0'){
+        while(!machine->ReadMem(name_addr+i,1,&data)); 
+        *(name+i)=(char)data;
+        i++;    
+    }
+    printf("%s\n",name);
+    return name;
+}
+void CreateHandler(){
+    printf("SC Create\n");
+    char* name =ReadFileName();
+    printf("%s\n",name);
+    bool success = fileSystem->Create(name,128);
+    //machine->WriteRegister(2,int(success));
+    machine->PCAdvance();
+}
+
+void OpenHandler(){
+    printf("SC Open\n");
+    char* name = ReadFileName();
+    int file = (int)fileSystem->Open(name);
+    machine->WriteRegister(2,file);
+    printf("open file %s,%d\n",name,file);
+    machine->PCAdvance();
+}
+
+void CloseHandler(){
+    printf("SC Close\n");
+    int file = (int)(machine->ReadRegister(4));
+    OpenFile *openfile = (OpenFile*)file;
+    //printf("close file %d\n",openfile->Length());
+    //delete openfile;
+    printf("close file %d\n",(int)openfile);
+    machine->PCAdvance();
+}
+
+void ReadHandler(){
+    printf("SC Read\n");
+    int buffer = (machine->ReadRegister(4));
+    int size = (int)(machine->ReadRegister(5));
+    OpenFile* file = (OpenFile*)(machine->ReadRegister(6));
+    char* content = new char[size];
+    int success = file->Read(content,size);
+    int data =0;
+    for(int i =0;i<size;i++){
+        machine->WriteMem(buffer+i,1,int(content[i]));
+    }
+    machine->WriteRegister(2,int(success));
+    machine->PCAdvance();
+}
+
+void WriteHandler(){
+    printf("SC Write\n");
+    int buffer = machine->ReadRegister(4);
+    int size = (int)(machine->ReadRegister(5));
+    OpenFile* file = (OpenFile*)(machine->ReadRegister(6));
+    char* content = new char[size];
+    int data;
+    for(int i =0;i<size;i++){
+        machine->ReadMem(buffer+i,1,&data);
+        content[i]=char(data);
+    }
+    int success = file->Write(content,size);
+    //machine->WriteRegister(2,success);
+    machine->PCAdvance();
 }
 //----------------------------------------------------------------------
 // ExceptionHandler
@@ -213,36 +284,45 @@ ExceptionHandler(ExceptionType which)
     DEBUG('a',"entering exception handler.\n");
     int type = machine->ReadRegister(2);
     //rintf("dealing with exception,%d %d",which,type);
-    if ((which == SyscallException) && (type == SC_Halt)) {
-	DEBUG('a', "Shutdown, initiated by user program.\n");
-    
-   	interrupt->Halt();
+    if(which==SyscallException){
+        switch (type)
+        {
+            case SC_Halt:
+                DEBUG('a', "Shutdown, initiated by user program.\n");
+                interrupt->Halt();
+                break;
+            case SC_Exit:
+                printf("program suspended (yield).\n");
+                machine->suspendCurrentThread();
+                currentThread->Suspend();
+                machine->PCAdvance();
+                break;
+            case SC_Yield:
+                printf("Yield:Not Implemented\n");
+                break;
+            case SC_Create:
+                CreateHandler();
+                break;
+            case SC_Open:
+                OpenHandler();
+                break;
+            case SC_Close:
+                CloseHandler();
+                break;
+            case SC_Read:
+                ReadHandler();
+                break;
+            case SC_Write:
+                WriteHandler();
+                break;
+            default:
+                break;
+        }
     }
-    else if ((which == SyscallException) && (type == SC_Exit)){
-        printf("program exit.\n");
-        machine->deleteMem();
-        IntStatus old = interrupt->SetLevel(IntOff);
-        currentThread->Sleep();//never awake
-        interrupt->SetLevel(old);
-
-    }
-    else if ((which == SyscallException) && (type == SC_Yield)){
-        printf("program suspended (yield).\n");
-        machine->suspendCurrentThread();
-        currentThread->Suspend();
-        int nextPC = machine->ReadRegister(NextPCReg);
-        machine->WriteRegister(PCReg,nextPC);
-    }
-    // else if ((which == SyscallException) && (type == SC_Yield)){
-    //     printf("program yield.\n");
-    //     // int nextPC = machine->ReadRegister(NextPCReg);
-    //     // machine->WriteRegister(PCReg,nextPC);
-    //     currentThread->Yield();
-
-    // }
     else if(which==int(PageFaultException)){
         int badAddr = machine->registers[BadVAddrReg];
         unsigned int vpn = (unsigned) badAddr/PageSize;
+        int exchangePage=-1;
         if(machine->tlb!=NULL){
             // TLB MISS
             //printf("tlb miss\n");
@@ -261,7 +341,6 @@ ExceptionHandler(ExceptionType which)
                     insert_index = MAX(0,invalid(machine->tlb,TLBSize));
             }
             //printf("test:%d,%d\n",vpn,badAddr);
-            int exchangePage=-1;
             #ifdef REVERSE_PAGETABLE
             for(int i=0;i<NumPhysPages;i++){
                 if((machine->reversedPageTable[i].valid==TRUE)&&(machine->reversedPageTable[i].virtualPage == vpn)){
@@ -285,8 +364,8 @@ ExceptionHandler(ExceptionType which)
 
             if(machine->pageTable[vpn].valid==FALSE ){
                 //Page Fault
-                int exchangePage = DealPageFault(&(machine->pageTable[vpn]));
-                
+                exchangePage = DealPageFault(&(machine->pageTable[vpn]));
+                //printf("whta?%d\n",(machine->pageTable[vpn]).physicalPage);
                 if(exchangePage!=-1){
                     // change TLB table
                     for(int i=0;i<TLBSize;i++){
@@ -297,6 +376,7 @@ ExceptionHandler(ExceptionType which)
 
             }
             #endif
+            //printf("insert index %d, phy page %d",insert_index,exchangePage);
             machine->tlb[insert_index].valid = TRUE;
             machine->tlb[insert_index].virtualPage = vpn;
             machine->tlb[insert_index].physicalPage = exchangePage; 
@@ -306,7 +386,9 @@ ExceptionHandler(ExceptionType which)
             machine->tlb[insert_index].timestamp = 0;
             //printf("test:%d,%d %d %d\n",insert_index,vpn,machine->pageTable[vpn].physicalPage,machine->pageTable[vpn].valid);
             //int nextPC = machine->ReadRegister(NextPCReg);
-            //machine->WriteRegister(PCReg,nextPC);
+            //machine->WriteRegister(NextPCReg,machine->registers[PCReg]);
+            //machine->WriteRegister(PCReg,machine->registers[PrevPCReg]);
+            
             
         }
         else{
