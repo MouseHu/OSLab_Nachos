@@ -236,7 +236,7 @@ void ReadHandler(){
     int success = file->Read(content,size);
     int data =0;
     for(int i =0;i<size;i++){
-        machine->WriteMem(buffer+i,1,int(content[i]));
+        while(!machine->WriteMem(buffer+i,1,int(content[i])));
     }
     machine->WriteRegister(2,int(success));
     machine->PCAdvance();
@@ -250,7 +250,7 @@ void WriteHandler(){
     char* content = new char[size];
     int data;
     for(int i =0;i<size;i++){
-        machine->ReadMem(buffer+i,1,&data);
+        while(!machine->ReadMem(buffer+i,1,&data));
         content[i]=char(data);
     }
     int success = file->Write(content,size);
@@ -268,18 +268,19 @@ void JoinHandler(){
     printf("SC Join\n");
     int threadID = machine->ReadRegister(4);
     while(threads_occupied[threadID]){
+        //printf("%d\n",currentThread->getThreadID());
         currentThread->Yield();
     }
     machine->PCAdvance();
 }
 
-void SuspendHanlder(){
+void SuspendHandler(){
     printf("program suspended (yield).\n");
     machine->suspendCurrentThread();
     currentThread->Suspend();
     machine->PCAdvance();
 }
-void ExitHanlder(){
+void ExitHandler(){
     printf("SC Exit\n");
     int status = machine->ReadRegister(4);
     printf("program exit with status: %d\n",status);
@@ -288,13 +289,15 @@ void ExitHanlder(){
 }
 void ExecRun(int executable){
     printf("Running user process:%s\n",currentThread->getName());
-    AddrSpace *space;
+    AddrSpace *space; 
     space = new AddrSpace((OpenFile*)executable);     
     currentThread->space = space;
     delete (OpenFile*)executable;			// close file
     space->InitRegisters();		// set the initial register values
     space->RestoreState();		// load page table register
+    printf("in exec run\n");
     machine->Run();
+    currentThread->Finish();
 }
 
 void ForkRun(int func_pc){
@@ -302,12 +305,14 @@ void ForkRun(int func_pc){
     currentThread->space->RestoreState();
     machine->WriteRegister(PCReg,func_pc);
     machine->WriteRegister(NextPCReg,func_pc+4);
+
     machine->Run();
+    currentThread->Finish();
 }
-void ExecHanlder(){
+void ExecHandler(){
     printf("SC Exec\n");
     char* name = ReadFileName();
-    Thread* thread = new Thread("Exec",1000);
+    Thread* thread = new Thread("Exec");
     OpenFile *executable = fileSystem->Open(name);
     thread->Fork(ExecRun,(int)executable);
     machine->WriteRegister(2,thread->getThreadID());
@@ -319,7 +324,7 @@ void ForkHandler(){
     int func_pc = machine->ReadRegister(4);
     Thread* thread = new Thread("Fork");
     thread->space=currentThread->space;
-    thread->Fork(ForkRun,0);
+    thread->Fork(ForkRun,func_pc);
     machine->PCAdvance();
 }
 //----------------------------------------------------------------------
@@ -355,14 +360,18 @@ ExceptionHandler(ExceptionType which)
         switch (type)
         {
             case SC_Halt:
+                printf("SC Halt\n");
                 DEBUG('a', "Shutdown, initiated by user program.\n");
                 interrupt->Halt();
                 break;
             case SC_Exit:
-                ExitHanlder();
+                ExitHandler();
                 break;
             case SC_Yield:
                 YieldHandler();
+                break;
+            case SC_Fork:
+                ForkHandler();
                 break;
             case SC_Join:
                 JoinHandler();
@@ -381,6 +390,9 @@ ExceptionHandler(ExceptionType which)
                 break;
             case SC_Write:
                 WriteHandler();
+                break;
+            case SC_Exec:
+                ExecHandler();
                 break;
             default:
                 break;
@@ -409,6 +421,7 @@ ExceptionHandler(ExceptionType which)
             }
             //printf("test:%d,%d\n",vpn,badAddr);
             #ifdef REVERSE_PAGETABLE
+            exchangePage == -1;
             for(int i=0;i<NumPhysPages;i++){
                 if((machine->reversedPageTable[i].valid==TRUE)&&(machine->reversedPageTable[i].virtualPage == vpn)){
                     exchangePage = i;
@@ -441,6 +454,9 @@ ExceptionHandler(ExceptionType which)
                     }
                 }
 
+            }
+            else{
+                exchangePage=machine->pageTable[vpn].physicalPage;
             }
             #endif
             //printf("insert index %d, phy page %d",insert_index,exchangePage);

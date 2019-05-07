@@ -219,8 +219,10 @@ Thread::Finish ()
     (void) interrupt->SetLevel(IntOff);		
     ASSERT(this == currentThread);
     
-    DEBUG('t', "Finishing thread \"%s\"\n", getName());
+    DEBUG('t', "Finishing thread \"%s\" id: %d\n", getName(),getThreadID());
     threadToBeDestroyed = currentThread;
+    threads_occupied[threadID] = false;
+
     Sleep();					// invokes SWITCH
     // not reached
 }
@@ -454,6 +456,7 @@ Thread::SaveUserState()
 {
     for (int i = 0; i < NumTotalRegs; i++)
 	userRegisters[i] = machine->ReadRegister(i);
+    //printf("Saving state, pc reg:%d\n",machine->ReadRegister(PCReg));
 }
 
 //----------------------------------------------------------------------
@@ -470,5 +473,6 @@ Thread::RestoreUserState()
 {
     for (int i = 0; i < NumTotalRegs; i++)
 	machine->WriteRegister(i, userRegisters[i]);
+    //printf("Restoring state, pc reg:%d\n",machine->ReadRegister(PCReg));
 }
 #endif

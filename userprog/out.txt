@@ -1,0 +1,44 @@
+Hello! Nachos here.
+numcodepage: 4
+program: main start
+Page Fault. exchanging physical page: 0
+Page Fault. exchanging physical page: 1
+Page Fault. exchanging physical page: 2
+Page Fault. exchanging physical page: 3
+SC Create
+Page Fault. exchanging physical page: 4
+test_fork.txt
+test_fork.txt
+SC Fork
+SC Yield
+Saving state, pc reg:184
+SC Open
+test1.txt
+open file test1.txt,163268952
+SC Read
+Page Fault. exchanging physical page: 5
+SC Close
+close file 163268952
+SC Create
+test_fork.txt
+test_fork.txt
+SC Fork
+SC Yield
+Saving state, pc reg:184
+Restoring state, pc reg:184
+SC Open
+test_fork.txt
+open file test_fork.txt,163268896
+SC Write
+SC Close
+close file 163268896
+Machine halting!
+
+tlb hit: 220, tlb miss: 21 miss rate:0.095
+Ticks: total 188, idle 0, system 50, user 138
+Disk I/O: reads 0, writes 0
+Console I/O: reads 0, writes 0
+Paging: faults 0
+Network I/O: packets received 0, sent 0
+
+Cleaning up...

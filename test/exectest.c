@@ -4,7 +4,7 @@ int
 main()
 {
 	int id;
-	id = Exec("halt");
+	id = Exec("../test/halt");
 	Join(id);
 	Exit(0);
 }

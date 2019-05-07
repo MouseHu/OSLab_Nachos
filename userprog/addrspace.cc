@@ -188,7 +188,6 @@ AddrSpace::InitRegisters()
 
     for (i = 0; i < NumTotalRegs; i++){
         machine->WriteRegister(i, 0);
-        reg[i]=0;
     }
 	    
 
@@ -203,6 +202,10 @@ AddrSpace::InitRegisters()
    // allocated the stack; but subtract off a bit, to make sure we don't
    // accidentally reference off the end!
     machine->WriteRegister(StackReg, numPages * PageSize - 16);
+    
+    for (i = 0; i < NumTotalRegs; i++){
+        reg[i]=machine->ReadRegister(i);
+    }
     DEBUG('a', "Initializing stack register to %d\n", numPages * PageSize - 16);
 }
 
@@ -219,8 +222,7 @@ void AddrSpace::SaveState()
     for(int i=0;i<TLBSize;i++){
         machine->tlb[i].valid = FALSE;
     }
-    for (int i = 0; i < NumTotalRegs; i++)
-	    reg[i] = machine->ReadRegister(i);
+
 }
 
 //----------------------------------------------------------------------
@@ -239,6 +241,4 @@ void AddrSpace::RestoreState()
     machine->pageTable = pageTable;
     machine->pageTableSize = numPages;
     #endif
-    for (int i = 0; i < NumTotalRegs; i++)
-	    machine->WriteRegister(i,reg[i]);
 }

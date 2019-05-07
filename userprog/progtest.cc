@@ -48,10 +48,6 @@ StartProcess(char *filename)
     //thread->Fork(RunUser,1);
 
     delete executable;			// close file
-    //delete executable2;
-    //space2->InitRegisters();		// set the initial register values
-    //space2->RestoreState();		// load page table register
-    currentThread->Yield();
 
     space->InitRegisters();		// set the initial register values
     space->RestoreState();		// load page table register
