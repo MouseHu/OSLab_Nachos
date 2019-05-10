@@ -1,4 +1,6 @@
+// #include "copyright.h"
 #include "wrlock.h"
+// #include "system.h"
 
 WRlock::WRlock(){
     reader_count = 0;

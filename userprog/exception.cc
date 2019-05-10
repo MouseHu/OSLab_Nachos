@@ -26,7 +26,7 @@
 #include "syscall.h"
 
 
-int TLBAlgoType =2 ;
+int TLBAlgoType =3 ;
 int PageTableAlgoType =2;
 
 //add by huhao 
@@ -415,6 +415,9 @@ ExceptionHandler(ExceptionType which)
                     break;
                 case 2:
                     insert_index = LRU(machine->tlb,TLBSize);
+                    break;
+                case 3:
+                    insert_index = 0;
                     break;
                 default:
                     insert_index = MAX(0,invalid(machine->tlb,TLBSize));

@@ -35,8 +35,13 @@
 #ifndef FS_H
 #define FS_H
 
+
 #include "copyright.h"
 #include "openfile.h"
+// #include "wrlock.h"
+// #include "system.h"
+#include "map"
+
 
 #ifdef FILESYS_STUB 		// Temporarily implement file system calls as 
 				// calls to UNIX, until the real file system
@@ -74,16 +79,19 @@ class FileSystem {
 					// the disk, so initialize the directory
     					// and the bitmap of free blocks.
 
-    bool Create(char *name, int initialSize);  	
+    bool Create(char *name, int initialSize,char* dir=NULL,char* type=NULL);  	
 					// Create a file (UNIX creat)
 
-    OpenFile* Open(char *name); 	// Open a file (UNIX open)
+    OpenFile* Open(char *name,char* dir=NULL,char* type=NULL); 	// Open a file (UNIX open)
 
-    bool Remove(char *name);  		// Delete a file (UNIX unlink)
+    bool Remove(char *name,char* dir=NULL);  		// Delete a file (UNIX unlink)
 
     void List();			// List all the files in the file system
 
     void Print();			// List all the files and their contents
+
+		// bool ActivateFile(int fdrSector);
+		// bool InactivateFile( int fdrSector );
 
   private:
    OpenFile* freeMapFile;		// Bit map of free disk blocks,
@@ -92,6 +100,12 @@ class FileSystem {
 					// file names, represented as a file
 };
 
+// class ActiveFile{
+// public:
+// 	int hdrSector;
+// 	int openCount;
+// 	WRlock* fileLock;
+// };
 #endif // FILESYS
 
 #endif // FS_H

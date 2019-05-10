@@ -15,7 +15,8 @@
 #include "interrupt.h"
 #include "stats.h"
 #include "timer.h"
-
+// #include "wrlock.h"
+#include <map>
 //add by huhao
 #define MAX_THREAD 128
 extern bool threads_occupied[MAX_THREAD];
@@ -41,7 +42,14 @@ extern Machine* machine;	// user program memory and registers
 
 #ifdef FILESYS_NEEDED 		// FILESYS or FILESYS_STUB 
 #include "filesys.h"
+// class ActiveFile{
+// public:
+// 	int hdrSector;
+// 	int openCount;
+// 	WRlock* fileLock;
+// };
 extern FileSystem  *fileSystem;
+// extern std::map<int,ActiveFile*> ActiveFile;
 #endif
 
 #ifdef FILESYS

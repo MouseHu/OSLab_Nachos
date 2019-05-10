@@ -87,35 +87,35 @@ int main(int argc, char **argv)
     (void) Initialize(argc, argv);
 
     PrintHello();
-#ifdef THREADS
-	bool synchTest = false;
-    for (argc--, argv++; argc > 0; argc -= argCount, argv += argCount) {
-      argCount = 1;
-      switch (argv[0][1]) {
-      case 'q':
-        testnum = atoi(argv[1]);
-        argCount++;
-        break;
-	  case 'S':
-	  	if(argv[0][0]=='T'){
-			  testnum = 4;
-			  break;
-		  }
-	  case 's':
-	  	testnum = atoi(argv[1]);
-        argCount++;
-		synchTest = TRUE;
-        break;
-      default:
-        testnum = 3;
-        break;
-      }
-    }
-	if(synchTest)
-		SynchTest();
-	else
-    	ThreadTest();
-#endif
+// #ifdef THREADS
+// 	bool synchTest = false;
+//     for (argc--, argv++; argc > 0; argc -= argCount, argv += argCount) {
+//       argCount = 1;
+//       switch (argv[0][1]) {
+//       case 'q':
+//         testnum = atoi(argv[1]);
+//         argCount++;
+//         break;
+// 	  case 'S':
+// 	  	if(argv[0][0]=='T'){
+// 			  testnum = 4;
+// 			  break;
+// 		  }
+// 	  case 's':
+// 	  	testnum = atoi(argv[1]);
+//         argCount++;
+// 		synchTest = TRUE;
+//         break;
+//       default:
+//         testnum = 3;
+//         break;
+//       }
+//     }
+// 	if(synchTest)
+// 		SynchTest();
+// 	else
+//     	ThreadTest();
+// #endif
 
     for (argc--, argv++; argc > 0; argc -= argCount, argv += argCount) {
 	argCount = 1;

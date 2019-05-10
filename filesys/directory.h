@@ -13,15 +13,18 @@
 // of liability and disclaimer of warranty provisions.
 
 #include "copyright.h"
-
+#include <time.h>
 #ifndef DIRECTORY_H
 #define DIRECTORY_H
 
 #include "openfile.h"
-
-#define FileNameMaxLen 		9	// for simplicity, we assume 
+#include <vector>
+#include <string>
+#include <sstream>
+#define FileNameMaxLen 		18	// for simplicity, we assume 
 					// file names are <= 9 characters long
-
+#define TypeNameMaxLen 		9
+#define DirNameMaxLen  70
 // The following class defines a "directory entry", representing a file
 // in the directory.  Each entry gives the name of the file, and where
 // the file's header is to be found on disk.
@@ -31,11 +34,31 @@
 
 class DirectoryEntry {
   public:
-    bool inUse;				// Is this directory entry in use?
-    int sector;				// Location on disk to find the 
+    //bool inUse;				// Is this directory entry in use?
+    int childSize;
+    int fileSector;				// Location on disk to find the 
 					//   FileHeader for this file 
-    char name[FileNameMaxLen + 1];	// Text name for file, with +1 for 
-					// the trailing '\0'
+    int selfSector;// Location on disk to find self
+    //int parentSector;
+    // char type[TypeNameMaxLen+1];
+    // char name[FileNameMaxLen + 1];	// Text name for file, with +1 for 
+		// 			// the trailing '\0'
+    // char directory[DirectoryMaxLen +1];
+    char type[TypeNameMaxLen+1];
+    char name[FileNameMaxLen+1];
+    char directory[DirNameMaxLen+1];
+    DirectoryEntry* parent;
+    std::vector<DirectoryEntry*>* child ;
+    
+    void FetchFrom(OpenFile* file);
+    void WriteBack(OpenFile* file);
+
+    DirectoryEntry(){
+      selfSector=-1;
+      fileSector = -1;
+      childSize = 0;
+    }
+    bool operator ==(DirectoryEntry &temp);
 };
 
 // The following class defines a UNIX-like "directory".  Each entry in
@@ -58,25 +81,28 @@ class Directory {
     void WriteBack(OpenFile *file);	// Write modifications to 
 					// directory contents back to disk
 
-    int Find(char *name);		// Find the sector number of the 
+    DirectoryEntry* Find(std::vector<DirectoryEntry*>* vector,const char* dir);		// Find the sector number of the 
 					// FileHeader for file: "name"
 
-    bool Add(char *name, int newSector);  // Add a file name into the directory
+    bool Add(char *name,char* directory, char* type, int fileSector, int selfSector);  // Add a file name into the directory
 
-    bool Remove(char *name);		// Remove a file from the directory
+    DirectoryEntry* FindEntry(const char* name,const char* dir);
+
+    bool Remove(char *name,char* dir);		// Remove a file from the directory
 
     void List();			// Print the names of all the files
 					//  in the directory
     void Print();			// Verbose print of the contents
 					//  of the directory -- all the file
 					//  names and their contents.
-
   private:
     int tableSize;			// Number of directory entries
-    DirectoryEntry *table;		// Table of pairs: 
+    //DirectoryEntry *table;		// Table of pairs: 
 					// <file name, file header location> 
-
-    int FindIndex(char *name);		// Find the index into the directory 
+  public:
+    std::vector<DirectoryEntry*>* root;
+    
+    //int FindIndex(char *name);		// Find the index into the directory 
 					//  table corresponding to "name"
 };
 

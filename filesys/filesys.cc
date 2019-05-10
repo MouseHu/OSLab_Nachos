@@ -103,8 +103,8 @@ FileSystem::FileSystem(bool format)
     // We need to do this before we can "Open" the file, since open
     // reads the file header off of disk (and currently the disk has garbage
     // on it!).
-
-        DEBUG('f', "Writing headers back to disk.\n");
+    
+    DEBUG('f', "Writing headers back to disk.\n");
 	mapHdr->WriteBack(FreeMapSector);    
 	dirHdr->WriteBack(DirectorySector);
 
@@ -114,7 +114,7 @@ FileSystem::FileSystem(bool format)
 
         freeMapFile = new OpenFile(FreeMapSector);
         directoryFile = new OpenFile(DirectorySector);
-     
+    //printf("file length:%d",directoryFile->Length());
     // Once we have the files "open", we can write the initial version
     // of each file back to disk.  The directory at this point is completely
     // empty; but the bitmap has been changed to reflect the fact that
@@ -130,7 +130,7 @@ FileSystem::FileSystem(bool format)
 	    directory->Print();
 
         delete freeMap; 
-	delete directory; 
+	//delete directory; 
 	delete mapHdr; 
 	delete dirHdr;
 	}
@@ -172,46 +172,65 @@ FileSystem::FileSystem(bool format)
 //----------------------------------------------------------------------
 
 bool
-FileSystem::Create(char *name, int initialSize)
+FileSystem::Create(char *name, int initialSize,char* dir,char* type)
 {
     Directory *directory;
     BitMap *freeMap;
-    FileHeader *hdr;
-    int sector;
-    bool success;
+    FileHeader *hdr1,*hdr2;
+    int sector1,sector2;
+    //bool success;
 
     DEBUG('f', "Creating file %s, size %d\n", name, initialSize);
 
     directory = new Directory(NumDirEntries);
     directory->FetchFrom(directoryFile);
 
-    if (directory->Find(name) != -1)
-      success = FALSE;			// file is already in directory
-    else {	
+    if (directory->FindEntry(name,dir) != NULL)
+      return FALSE;			// file is already in directory
+    else {
         freeMap = new BitMap(NumSectors);
         freeMap->FetchFrom(freeMapFile);
-        sector = freeMap->Find();	// find a sector to hold the file header
-    	if (sector == -1) 		
-            success = FALSE;		// no free block for file header 
-        else if (!directory->Add(name, sector))
-            success = FALSE;	// no space in directory
+        if(initialSize!=0){
+            sector1 = freeMap->Find();	// find a sector to hold the file header
+            if ((sector1 == -1)) 		
+                return FALSE;		// no free block for file header 
+        }
+        else{
+            sector1 = -1; // Creating a directory
+        }
+        sector2 = freeMap->Find();	// find a sector to hold the directory
+    	if (sector2 == -1) 		
+            return FALSE;		// no free block for file header 
+        else if (!directory->Add(name, dir,type,sector1,sector2)){
+            return FALSE;	// no space in directory
+        }
 	else {
-    	    hdr = new FileHeader;
-	    if (!hdr->Allocate(freeMap, initialSize))
-            	success = FALSE;	// no space on disk for data
-	    else {	
-	    	success = TRUE;
+    	hdr1 = new FileHeader;
+        hdr2 = new FileHeader;
+        if (!hdr2->Allocate(freeMap, SectorSize))
+            	return FALSE;	// no space on disk for data
+        if(initialSize>0){
+            if (!hdr1->Allocate(freeMap, initialSize))
+            	return FALSE;	// no space on disk for data
+            hdr1->WriteBack(sector1); 
+        }
+        //hdr2 = new FileHeader;
+	    
+	    	
+	    	//success = TRUE;
 		// everthing worked, flush all changes back to disk
-    	    	hdr->WriteBack(sector); 		
-    	    	directory->WriteBack(directoryFile);
-    	    	freeMap->WriteBack(freeMapFile);
-	    }
-            delete hdr;
+    	    	
+        hdr2->WriteBack(sector2);		
+        directory->WriteBack(directoryFile);
+        freeMap->WriteBack(freeMapFile);
+	    
+        delete hdr1;
+        delete hdr2;
 	}
         delete freeMap;
     }
     delete directory;
-    return success;
+    return TRUE;
 }
 
 //----------------------------------------------------------------------
@@ -225,15 +244,17 @@ FileSystem::Create(char *name, int initialSize)
 //----------------------------------------------------------------------
 
 OpenFile *
-FileSystem::Open(char *name)
+FileSystem::Open(char *name,char* dir,char* type)
 { 
     Directory *directory = new Directory(NumDirEntries);
     OpenFile *openFile = NULL;
     int sector;
-
+    //printf("2 %d\n",(int)directory->root);
     DEBUG('f', "Opening file %s\n", name);
     directory->FetchFrom(directoryFile);
-    sector = directory->Find(name); 
+    //printf("3 %d\n",(int)directory->root);
+    DirectoryEntry* tmp = directory->FindEntry(name,dir);
+    sector = tmp->fileSector; 
     if (sector >= 0) 		
 	openFile = new OpenFile(sector);	// name was found in directory 
     delete directory;
@@ -255,7 +276,7 @@ FileSystem::Open(char *name)
 //----------------------------------------------------------------------
 
 bool
-FileSystem::Remove(char *name)
+FileSystem::Remove(char *name,char* dir)
 { 
     Directory *directory;
     BitMap *freeMap;
@@ -264,26 +285,33 @@ FileSystem::Remove(char *name)
     
     directory = new Directory(NumDirEntries);
     directory->FetchFrom(directoryFile);
-    sector = directory->Find(name);
+    sector = directory->FindEntry(name,dir)->fileSector;
     if (sector == -1) {
        delete directory;
        return FALSE;			 // file not found 
     }
     fileHdr = new FileHeader;
     fileHdr->FetchFrom(sector);
-
+    
     freeMap = new BitMap(NumSectors);
     freeMap->FetchFrom(freeMapFile);
 
     fileHdr->Deallocate(freeMap);  		// remove data blocks
     freeMap->Clear(sector);			// remove header block
-    directory->Remove(name);
-
+    directory->Remove(name,dir);
+    //printf("directry:%d",(*directory->root)[0]->childSize);
     freeMap->WriteBack(freeMapFile);		// flush to disk
     directory->WriteBack(directoryFile);        // flush to disk
+    
     delete fileHdr;
     delete directory;
     delete freeMap;
+    if(dir!=NULL)
+        printf("Delete file %s\\%s successfully.\n",dir,name);
+    else
+        printf("Delete file %s successfully.\n",name);
+
+    
     return TRUE;
 } 
 
@@ -339,3 +367,35 @@ FileSystem::Print()
     delete freeMap;
     delete directory;
 } 
+
+
+// WRlock* FileSystem::ActivateFile(int hdrSector){
+//     std::map<int, ActiveFile*>::iterator itFind = ActiveFileList.find( hdrSector );
+//     ActiveFile* activeFile;
+// 	if( itFind != ActiveFileList.end() ){
+// 		activeFile = (*itFind).second;
+// 		activeFile->openCount++;
+// 	}
+// 	else{
+// 		activeFile = new ActiveFile;
+// 		activeFile->hdrSector = hdrSector;
+// 		activeFile->openCount = 1;
+// 		activeFile->fileLock = new WRlock;
+// 		ActiveFileList.insert(std::pair<int,ActiveFile*>(hdrSector,activeFile) );
+// 	}
+//     return activeFile->fileLock;
+// };
+
+// bool FileSystem::InactivateFile( int hdrSector ){
+//     std::map<int, ActiveFile*>::iterator itFind = ActiveFileList.find( hdrSector );
+//     ASSERT(itFind!=ActiveFileList.end());
+//     ActiveFile* activeFile = (*itFind).second;
+//     activeFile->openCount--;
+//     if(activeFile->openCount==0){
+//         delete activeFile->fileLock;
+//         ActiveFileList.erase(itFind);
+//         delete activeFile;
+//         return TRUE;
+//     }
+//     return FALSE;
+// };

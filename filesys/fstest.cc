@@ -121,7 +121,7 @@ FileWrite()
 
     printf("Sequential write of %d byte file, in %d byte chunks\n", 
 	FileSize, ContentSize);
-    if (!fileSystem->Create(FileName, 0)) {
+    if (!fileSystem->Create(FileName, FileSize)) {// Create(FileName, 0)?
       printf("Perf test: can't create %s\n", FileName);
       return;
     }
@@ -176,6 +176,7 @@ PerformanceTest()
     stats->Print();
     FileWrite();
     FileRead();
+    printf("Begin Remove.\n");
     if (!fileSystem->Remove(FileName)) {
       printf("Perf test: unable to remove %s\n", FileName);
       return;

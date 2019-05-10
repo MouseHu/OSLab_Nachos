@@ -102,7 +102,7 @@ Initialize(int argc, char **argv)
     bool debugUserProg = FALSE;	// single step user program
 #endif
 #ifdef FILESYS_NEEDED
-    bool format = FALSE;	// format disk
+    bool format = TRUE;//FALSE;	// format disk
 #endif
 #ifdef NETWORK
     double rely = 1;		// network reliability
@@ -166,6 +166,7 @@ Initialize(int argc, char **argv)
     
 #ifdef USER_PROGRAM
     machine = new Machine(debugUserProg);	// this must come first
+    //int* SynchCmd = NULL:
 #endif
 
 #ifdef FILESYS
@@ -174,6 +175,7 @@ Initialize(int argc, char **argv)
 
 #ifdef FILESYS_NEEDED
     fileSystem = new FileSystem(format);
+    // ActiveFileList = new map<int,FileEntry*>();
 #endif
 
 #ifdef NETWORK

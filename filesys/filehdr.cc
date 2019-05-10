@@ -26,7 +26,7 @@
 
 #include "system.h"
 #include "filehdr.h"
-
+#include <time.h>
 //----------------------------------------------------------------------
 // FileHeader::Allocate
 // 	Initialize a fresh file header for a newly created file.
@@ -40,14 +40,83 @@
 
 bool
 FileHeader::Allocate(BitMap *freeMap, int fileSize)
-{ 
+{
+    DEBUG('f',"Fdr allocate:%d\n",fileSize); 
+    time_t t;
+    time(&t);
     numBytes = fileSize;
     numSectors  = divRoundUp(fileSize, SectorSize);
-    if (freeMap->NumClear() < numSectors)
-	return FALSE;		// not enough space
+    int SectorBuffer[SectorSize/sizeof(int)];
+    int IndexBuffer[SectorSize/sizeof(int)];
+    int max_l1index = SectorSize/sizeof(int);
+    int max_l2index = SectorSize/sizeof(int)*SectorSize/sizeof(int);
+    //int num_l2index2 = MAX(0,divRoundUp(numSectors-(NumDirect+num_l1index),SectorSize/sizeof(int)));
+    if(numSectors<NumDirect){
+        if (freeMap->NumClear() < numSectors)
+	        return FALSE;		// not enough space
+        //all direct index
+        l1Index = -1;
+        l2Index = -1;
+        for (int i = 0; i < numSectors; i++){
+            dataSectors[i] = freeMap->Find();
+            //printf("Allocate:%d->%d\n",i,dataSectors[i]);
+        }
+	        
+    }
+    else if(numSectors<(NumDirect+max_l1index)){
+        //only l1 index
+        if (freeMap->NumClear() < numSectors+1)
+            return FALSE;
+        l1Index = freeMap->Find();
+        l2Index = -1;
+        for (int i = 0; i < NumDirect; i++)
+	        dataSectors[i] = freeMap->Find();
+        for(int i=NumDirect;i<numSectors;i++){
+            IndexBuffer[i-NumDirect]=freeMap->Find();
+            //printf("Allocate:%d->%d\n",i,IndexBuffer[i-NumDirect]);
+        }
+        synchDisk->WriteSector(l1Index, (char *)IndexBuffer ); 
+    }
+    else if(numSectors<(NumDirect+max_l1index+max_l2index)){
+        //l1 index and l2 index
+        int num_l2index = divRoundUp(numSectors-(NumDirect+max_l1index),SectorSize/sizeof(int));
+        if (freeMap->NumClear() < numSectors+2+num_l2index)
+            return FALSE;
+        l1Index = freeMap->Find();
+        l2Index = freeMap->Find();
+        for (int i = 0; i < NumDirect; i++){
+            dataSectors[i] = freeMap->Find();
+            //printf("Allocate:%d->%d\n",i,dataSectors[i]);
+        }
+        for(int i=NumDirect;i<NumDirect+max_l1index;i++){
+            IndexBuffer[i-NumDirect]=freeMap->Find();
+            //printf("Allocate:%d->%d\n",i,IndexBuffer[i-NumDirect]);
+        }
+        synchDisk->WriteSector(l1Index, (char *)IndexBuffer );
+        int j = -1; 
+        for(int i =NumDirect+max_l1index;i<numSectors;i++){
+            int pos = (i-NumDirect-max_l1index)%(SectorSize/sizeof(int));
+            if(pos==0){
+                if(j>=0){
+                    synchDisk->WriteSector(IndexBuffer[j], (char *)SectorBuffer );
+                }
+                IndexBuffer[++j]=freeMap->Find();
+            }
+            SectorBuffer[pos] = freeMap->Find();
+            //printf("Allocate:%d->%d\n",i,SectorBuffer[pos]);
+        }
+        synchDisk->WriteSector(IndexBuffer[j], (char *)SectorBuffer );
+        synchDisk->WriteSector(l2Index, (char *)IndexBuffer );
+    }
+    else{
+        DEBUG('f',"Too big! %d %d\n",numSectors,NumDirect+max_l1index+max_l2index);
+        return FALSE;
+    }
+    
 
-    for (int i = 0; i < numSectors; i++)
-	dataSectors[i] = freeMap->Find();
+    createTime = int(t);
+    modifyTime = int(t);
+    visitTime = int(t);
     return TRUE;
 }
 
@@ -61,10 +130,59 @@ FileHeader::Allocate(BitMap *freeMap, int fileSize)
 void 
 FileHeader::Deallocate(BitMap *freeMap)
 {
-    for (int i = 0; i < numSectors; i++) {
-	ASSERT(freeMap->Test((int) dataSectors[i]));  // ought to be marked!
-	freeMap->Clear((int) dataSectors[i]);
+    int num_l1index = SectorSize/sizeof(int);
+    int num_l2index = MAX(0,divRoundUp(numSectors-(NumDirect+num_l1index),SectorSize/sizeof(int)));
+    int SectorBuffer[SectorSize/sizeof(int)];
+    int IndexBuffer[SectorSize/sizeof(int)];
+    if(numSectors<NumDirect){
+        for (int i = 0; i < numSectors; i++) {
+	        ASSERT(freeMap->Test((int) dataSectors[i]));  // ought to be marked!
+	        freeMap->Clear((int) dataSectors[i]);
+        }
     }
+    else if(numSectors<NumDirect+num_l1index){
+        for (int i = 0; i < NumDirect; i++) {
+	        ASSERT(freeMap->Test((int) dataSectors[i]));  // ought to be marked!
+	        freeMap->Clear((int) dataSectors[i]);
+        }
+        synchDisk->ReadSector(l1Index, (char*)IndexBuffer);
+        for(int i =NumDirect;i<numSectors;i++){
+            ASSERT(freeMap->Test((int) IndexBuffer[i-NumDirect]));
+            freeMap->Clear((int) IndexBuffer[i-NumDirect]);
+        }
+        ASSERT(freeMap->Test((int) l1Index));
+        freeMap->Clear((int) l1Index);
+    }
+    else{
+        for (int i = 0; i < NumDirect; i++) {
+	        ASSERT(freeMap->Test((int) dataSectors[i]));  // ought to be marked!
+	        freeMap->Clear((int) dataSectors[i]);
+        }
+        synchDisk->ReadSector(l1Index, (char*)IndexBuffer);
+        for(int i =0;i<num_l1index;i++){
+            ASSERT(freeMap->Test((int) IndexBuffer[i]));
+            freeMap->Clear((int) IndexBuffer[i]);
+        }
+        ASSERT(freeMap->Test((int) l1Index));
+        freeMap->Clear((int) l1Index);
+        synchDisk->ReadSector(l2Index, (char*)IndexBuffer);
+        int j = 0; 
+        for(int i =NumDirect+num_l1index;i<numSectors;i++){
+            int pos = (i-NumDirect-num_l1index)%(SectorSize/sizeof(int));
+            if(pos==0){
+                synchDisk->ReadSector(IndexBuffer[j++], (char *)SectorBuffer );
+            }
+            ASSERT(freeMap->Test((int) SectorBuffer[pos]));
+            freeMap->Clear((int) SectorBuffer[pos]);
+        }
+        for(int i =0;i<num_l2index;i++){
+            ASSERT(freeMap->Test((int) IndexBuffer[i]));
+            freeMap->Clear((int) IndexBuffer[i]);
+        }
+        ASSERT(freeMap->Test((int) l2Index));
+        freeMap->Clear((int) l2Index);
+    }
+
 }
 
 //----------------------------------------------------------------------
@@ -77,6 +195,7 @@ FileHeader::Deallocate(BitMap *freeMap)
 void
 FileHeader::FetchFrom(int sector)
 {
+
     synchDisk->ReadSector(sector, (char *)this);
 }
 
@@ -90,6 +209,9 @@ FileHeader::FetchFrom(int sector)
 void
 FileHeader::WriteBack(int sector)
 {
+    time_t t;
+    time(&t);
+    modifyTime = int(t);
     synchDisk->WriteSector(sector, (char *)this); 
 }
 
@@ -106,7 +228,31 @@ FileHeader::WriteBack(int sector)
 int
 FileHeader::ByteToSector(int offset)
 {
-    return(dataSectors[offset / SectorSize]);
+    int numSector = offset/SectorSize;
+    int num_l1index = SectorSize/sizeof(int);
+    int num_l2index = MAX(0,divRoundUp(numSectors-(NumDirect+num_l1index),SectorSize/sizeof(int)));
+    int SectorBuffer[SectorSize/sizeof(int)];
+    int IndexBuffer[SectorSize/sizeof(int)];
+    if(numSector<NumDirect){
+        //printf("Byte to sector:%d -> %d\n",offset,dataSectors[offset / SectorSize]);
+        return(dataSectors[numSector]);
+    }
+        
+    else if(numSector<NumDirect+num_l1index){
+        synchDisk->ReadSector(l1Index,(char*)IndexBuffer);
+        //printf("Byte to sector:%d -> %d\n",offset,IndexBuffer[offset / SectorSize - NumDirect]);
+        return IndexBuffer[numSector - NumDirect];
+    }
+    else{
+        //printf("l2 INDEX buffer:%d\n",l2Index);
+        synchDisk->ReadSector(l2Index,(char*)IndexBuffer);
+        int j = divRoundDown(numSector-(NumDirect+num_l1index),SectorSize/sizeof(int));
+        int pos = (numSector-(NumDirect+num_l1index))%(SectorSize/sizeof(int));
+        //printf("Sector buffer:%d %d %d %d\n",IndexBuffer[j],pos,j);
+        synchDisk->ReadSector(IndexBuffer[j],(char*)SectorBuffer);
+        //printf("Byte to sector:%d -> %d\n",offset,SectorBuffer[pos]);
+        return SectorBuffer[pos];
+    }
 }
 
 //----------------------------------------------------------------------
@@ -120,6 +266,12 @@ FileHeader::FileLength()
     return numBytes;
 }
 
+char* GetTime(int time){
+    time_t t = (time_t)time;
+    struct tm* timeBlock;
+    timeBlock = localtime(&t);
+    return(asctime(timeBlock));
+}
 //----------------------------------------------------------------------
 // FileHeader::Print
 // 	Print the contents of the file header, and the contents of all
@@ -133,6 +285,9 @@ FileHeader::Print()
     char *data = new char[SectorSize];
 
     printf("FileHeader contents.  File size: %d.  File blocks:\n", numBytes);
+    printf("Create time: %s\n",GetTime(createTime));
+    printf("Modify time: %s\n",GetTime(modifyTime));
+    printf("Visit time: %s\n",GetTime(visitTime));
     for (i = 0; i < numSectors; i++)
 	printf("%d ", dataSectors[i]);
     printf("\nFile contents:\n");
@@ -148,3 +303,62 @@ FileHeader::Print()
     }
     delete [] data;
 }
+
+
+void FileHeader::ClearSector( int sectorNum ){
+	char allZero[SectorSize] ={0};
+	synchDisk->WriteSector(sectorNum, (char *)allZero);
+}
+
+bool FileHeader::ChangeSize( BitMap *freeMap,int newSize ){
+    ASSERT(newSize>=numBytes)
+    int newNumSector = divRoundUp(newSize,SectorSize);
+    int num_l1index = SectorSize/sizeof(int);
+    int num_l2index = MAX(0,divRoundUp(numSectors-(NumDirect+num_l1index),SectorSize/sizeof(int)));
+    int SectorBuffer[SectorSize/sizeof(int)];
+    int IndexBuffer[SectorSize/sizeof(int)];
+
+    while(numSectors<MIN(NumDirect,newNumSector))
+    {
+        dataSectors[numSectors++]= freeMap->Find();
+    }
+    if(newNumSector>NumDirect){
+        if(l1Index<=0)
+            l1Index=freeMap->Find();
+        else
+            synchDisk->ReadSector(l1Index,(char*)IndexBuffer);
+        while(numSectors<MIN(NumDirect+num_l1index,newNumSector)){
+            IndexBuffer[numSectors-NumDirect] = freeMap->Find();
+        }
+    }
+    if(newNumSector>NumDirect+num_l1index){
+        if(l2Index<=0)
+            l2Index=freeMap->Find();
+        else{
+            synchDisk->ReadSector(l2Index,(char*)IndexBuffer);
+        }
+        while(numSectors<MIN(NumDirect+num_l1index,newNumSector)){
+
+            IndexBuffer[numSectors-NumDirect] = freeMap->Find();
+        }
+        int j = divRoundDown((numSectors-NumDirect-num_l1index),(SectorSize/sizeof(int)));
+        while(numSectors<newNumSector)
+        {
+            int pos = (numSectors-NumDirect-num_l1index)%(SectorSize/sizeof(int)); 
+            if(pos==0){
+                if(j>0){
+                    synchDisk->WriteSector(IndexBuffer[j], (char *)SectorBuffer );
+                }
+                IndexBuffer[j++]=freeMap->Find();
+            }
+            SectorBuffer[pos] = freeMap->Find();
+            numSectors++;
+        }
+        synchDisk->WriteSector(IndexBuffer[j], (char *)SectorBuffer );
+        synchDisk->WriteSector(l2Index, (char *)IndexBuffer );
+           
+    }
+    
+    
+}
+

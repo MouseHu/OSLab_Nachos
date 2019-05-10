@@ -1,8 +1,8 @@
+#ifndef WRLOCK_H
+#define WRLOCK_H
 #include "copyright.h"
 #include "system.h"
 #include "synch.h"
-#ifndef WRLOCK_H
-#define WRLOCK_H
 class WRlock{
     private:
         Semaphore* wrlock;

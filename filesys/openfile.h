@@ -22,6 +22,9 @@
 
 #include "copyright.h"
 #include "utility.h"
+// #include "filesys.h"
+// #include "system.h"
+// #include "wrlock.h"
 
 #ifdef FILESYS_STUB			// Temporarily implement calls to 
 					// Nachos file system as calls to UNIX!
@@ -88,7 +91,9 @@ class OpenFile {
     
   private:
     FileHeader *hdr;			// Header for this file 
+		//WRlock* fileLock;
     int seekPosition;			// Current position within the file
+		int hdrSector;				// File header sector , used to locate the wrlock
 };
 
 #endif // FILESYS
