@@ -26,7 +26,7 @@
 #include "syscall.h"
 
 
-int TLBAlgoType =3 ;
+int TLBAlgoType =2 ;
 int PageTableAlgoType =2;
 
 //add by huhao 
@@ -203,7 +203,7 @@ void CreateHandler(){
     printf("SC Create\n");
     char* name =ReadFileName();
     printf("%s\n",name);
-    bool success = fileSystem->Create(name,128);
+    bool success = fileSystem->Create(name,0);
     //machine->WriteRegister(2,int(success));
     machine->PCAdvance();
 }

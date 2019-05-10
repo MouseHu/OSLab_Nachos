@@ -102,7 +102,7 @@ Initialize(int argc, char **argv)
     bool debugUserProg = FALSE;	// single step user program
 #endif
 #ifdef FILESYS_NEEDED
-    bool format = TRUE;//FALSE;	// format disk
+    bool format = FALSE;//FALSE;	// format disk
 #endif
 #ifdef NETWORK
     double rely = 1;		// network reliability
@@ -174,8 +174,9 @@ Initialize(int argc, char **argv)
 #endif
 
 #ifdef FILESYS_NEEDED
+    // std::map<int,ActiveFile*>* activeFileList = new std::map<int,ActiveFile*>;
     fileSystem = new FileSystem(format);
-    // ActiveFileList = new map<int,FileEntry*>();
+    
 #endif
 
 #ifdef NETWORK

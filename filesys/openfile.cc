@@ -15,6 +15,7 @@
 #include "filehdr.h"
 #include "openfile.h"
 #include "system.h"
+// #include "wrlock.h"
 #ifdef HOST_SPARC
 #include <strings.h>
 #endif
@@ -27,14 +28,22 @@
 //	"sector" -- the location on disk of the file header for this file
 //----------------------------------------------------------------------
 
-OpenFile::OpenFile(int sector)
+OpenFile::OpenFile(int sector,FileSystem* fs)
 { 
+    printf("Next\n");
     hdr = new FileHeader;
     hdr->FetchFrom(sector);
+    printf("Fetch From ok\n");
     hdrSector = sector;
     seekPosition = 0;
-    //fileLock = fileSystem->ActivateFile(sector);
-}
+     //printf("?\n");
+    //printf("%d\n",(int)fileSystem);
+    if(fs==NULL)
+        fileLock = fileSystem->ActivateFile(sector);
+    else
+        fileLock = fs->ActivateFile(sector);
+    printf("??\n");
+}   
 
 //----------------------------------------------------------------------
 // OpenFile::~OpenFile
@@ -43,7 +52,7 @@ OpenFile::OpenFile(int sector)
 
 OpenFile::~OpenFile()
 {
-    //fileSystem->InactivateFile(hdrSector);
+    fileSystem->InactivateFile(hdrSector);
     delete hdr;
 }
 
@@ -145,6 +154,8 @@ OpenFile::ReadAt(char *into, int numBytes, int position)
     //fileLock->ReadRelease();
     // copy the part we want
     bcopy(&buf[position - (firstSector * SectorSize)], into, numBytes);
+    hdr->Visit();
+    hdr->WriteBack(hdrSector);
     delete [] buf;
     return numBytes;
 }
@@ -156,11 +167,22 @@ OpenFile::WriteAt(char *from, int numBytes, int position)
     int i, firstSector, lastSector, numSectors;
     bool firstAligned, lastAligned;
     char *buf;
-    //printf("WriteAt:%d\n",fileLength);
-    if ((numBytes <= 0) || (position >= fileLength))
-	return 0;				// check request
-    if ((position + numBytes) > fileLength)
-	numBytes = fileLength - position;
+    // printf("WriteAt:%d\n",fileLength);
+    // if ((numBytes <= 0) || (position >= fileLength))
+	// return 0;				// check request
+    //     if ((position + numBytes) > fileLength)
+	// numBytes = fileLength - position;
+    if(numBytes<=0 || position<0)
+        return 0;
+    if(position+numBytes>fileLength){
+        BitMap* freeMap = new BitMap(NumSectors);
+        freeMap->FetchFrom(fileSystem->freeMapFile);
+        hdr->ChangeSize(freeMap,position+numBytes);
+        freeMap->WriteBack(fileSystem->freeMapFile);
+        delete freeMap;
+    }
+        
+
     DEBUG('f', "Writing %d bytes at %d, from file of length %d.\n", 	
 			numBytes, position, fileLength);
 
@@ -189,6 +211,9 @@ OpenFile::WriteAt(char *from, int numBytes, int position)
         synchDisk->WriteSector(hdr->ByteToSector(i * SectorSize), 
 					&buf[(i - firstSector) * SectorSize]);
     //fileLock->WriteRelease();
+    hdr->Modify();
+    hdr->Visit();        
+    hdr->WriteBack(hdrSector);
     delete [] buf;
     return numBytes;
 }

@@ -112,8 +112,9 @@ main.o: ../threads/main.cc ../threads/copyright.h ../threads/utility.h \
  /usr/include/c++/4.6/bits/stl_tree.h /usr/include/c++/4.6/bits/stl_map.h \
  /usr/include/c++/4.6/bits/stl_multimap.h ../threads/scheduler.h \
  ../threads/list.h ../machine/interrupt.h ../threads/list.h \
- ../machine/stats.h ../machine/timer.h ../filesys/synchdisk.h \
- ../machine/disk.h ../threads/synch.h
+ ../machine/stats.h ../machine/timer.h ../threads/wrlock.h \
+ ../threads/synch.h ../filesys/synchdisk.h ../machine/disk.h \
+ ../threads/synch.h
 list.o: ../threads/list.cc ../threads/copyright.h ../threads/list.h \
  ../threads/utility.h ../threads/bool.h ../machine/sysdep.h \
  ../threads/copyright.h /usr/include/stdio.h /usr/include/features.h \
@@ -215,8 +216,8 @@ scheduler.o: ../threads/scheduler.cc ../threads/copyright.h \
  /usr/include/c++/4.6/bits/stl_tree.h /usr/include/c++/4.6/bits/stl_map.h \
  /usr/include/c++/4.6/bits/stl_multimap.h ../threads/system.h \
  ../machine/interrupt.h ../threads/list.h ../machine/stats.h \
- ../machine/timer.h ../filesys/synchdisk.h ../machine/disk.h \
- ../threads/synch.h
+ ../machine/timer.h ../threads/wrlock.h ../threads/synch.h \
+ ../filesys/synchdisk.h ../machine/disk.h ../threads/synch.h
 synch.o: ../threads/synch.cc ../threads/copyright.h ../threads/synch.h \
  ../threads/thread.h ../threads/utility.h ../threads/bool.h \
  ../machine/sysdep.h ../threads/copyright.h /usr/include/stdio.h \
@@ -303,7 +304,8 @@ synch.o: ../threads/synch.cc ../threads/copyright.h ../threads/synch.h \
  /usr/include/c++/4.6/bits/stl_multimap.h ../threads/list.h \
  ../threads/system.h ../threads/scheduler.h ../machine/interrupt.h \
  ../threads/list.h ../machine/stats.h ../machine/timer.h \
- ../filesys/synchdisk.h ../machine/disk.h ../threads/synch.h
+ ../threads/wrlock.h ../filesys/synchdisk.h ../machine/disk.h \
+ ../threads/synch.h
 synchlist.o: ../threads/synchlist.cc ../threads/copyright.h \
  ../threads/synchlist.h ../threads/list.h ../threads/utility.h \
  ../threads/bool.h ../machine/sysdep.h ../threads/copyright.h \
@@ -475,8 +477,9 @@ system.o: ../threads/system.cc ../threads/copyright.h ../threads/system.h \
  /usr/include/c++/4.6/bits/stl_tree.h /usr/include/c++/4.6/bits/stl_map.h \
  /usr/include/c++/4.6/bits/stl_multimap.h ../threads/scheduler.h \
  ../threads/list.h ../machine/interrupt.h ../threads/list.h \
- ../machine/stats.h ../machine/timer.h ../filesys/synchdisk.h \
- ../machine/disk.h ../threads/synch.h
+ ../machine/stats.h ../machine/timer.h ../threads/wrlock.h \
+ ../threads/synch.h ../filesys/synchdisk.h ../machine/disk.h \
+ ../threads/synch.h
 thread.o: ../threads/thread.cc ../threads/copyright.h ../threads/thread.h \
  ../threads/utility.h ../threads/bool.h ../machine/sysdep.h \
  ../threads/copyright.h /usr/include/stdio.h /usr/include/features.h \
@@ -563,8 +566,8 @@ thread.o: ../threads/thread.cc ../threads/copyright.h ../threads/thread.h \
  /usr/include/c++/4.6/bits/stl_multimap.h ../threads/switch.h \
  ../threads/synch.h ../threads/list.h ../threads/system.h \
  ../threads/scheduler.h ../machine/interrupt.h ../threads/list.h \
- ../machine/stats.h ../machine/timer.h ../filesys/synchdisk.h \
- ../machine/disk.h ../threads/synch.h
+ ../machine/stats.h ../machine/timer.h ../threads/wrlock.h \
+ ../filesys/synchdisk.h ../machine/disk.h ../threads/synch.h
 utility.o: ../threads/utility.cc ../threads/copyright.h \
  ../threads/utility.h ../threads/bool.h ../machine/sysdep.h \
  ../threads/copyright.h /usr/include/stdio.h /usr/include/features.h \
@@ -665,8 +668,9 @@ threadtest.o: ../threads/threadtest.cc ../threads/copyright.h \
  /usr/include/c++/4.6/bits/stl_tree.h /usr/include/c++/4.6/bits/stl_map.h \
  /usr/include/c++/4.6/bits/stl_multimap.h ../threads/scheduler.h \
  ../threads/list.h ../machine/interrupt.h ../threads/list.h \
- ../machine/stats.h ../machine/timer.h ../filesys/synchdisk.h \
- ../machine/disk.h ../threads/synch.h
+ ../machine/stats.h ../machine/timer.h ../threads/wrlock.h \
+ ../threads/synch.h ../filesys/synchdisk.h ../machine/disk.h \
+ ../threads/synch.h
 interrupt.o: ../machine/interrupt.cc ../threads/copyright.h \
  ../machine/interrupt.h ../threads/list.h ../threads/copyright.h \
  ../threads/utility.h ../threads/bool.h ../machine/sysdep.h \
@@ -754,8 +758,8 @@ interrupt.o: ../machine/interrupt.cc ../threads/copyright.h \
  /usr/include/c++/4.6/bits/stl_tree.h /usr/include/c++/4.6/bits/stl_map.h \
  /usr/include/c++/4.6/bits/stl_multimap.h ../threads/scheduler.h \
  ../threads/list.h ../machine/interrupt.h ../machine/stats.h \
- ../machine/timer.h ../filesys/synchdisk.h ../machine/disk.h \
- ../threads/synch.h
+ ../machine/timer.h ../threads/wrlock.h ../threads/synch.h \
+ ../filesys/synchdisk.h ../machine/disk.h ../threads/synch.h
 sysdep.o: ../machine/sysdep.cc ../threads/copyright.h \
  /usr/include/stdio.h /usr/include/features.h \
  /usr/include/i386-linux-gnu/bits/predefs.h \
@@ -882,8 +886,8 @@ sysdep.o: ../machine/sysdep.cc ../threads/copyright.h \
  /usr/include/c++/4.6/bits/stl_tree.h /usr/include/c++/4.6/bits/stl_map.h \
  /usr/include/c++/4.6/bits/stl_multimap.h ../threads/scheduler.h \
  ../threads/list.h ../machine/interrupt.h ../machine/stats.h \
- ../machine/timer.h ../filesys/synchdisk.h ../machine/disk.h \
- ../threads/synch.h
+ ../machine/timer.h ../threads/wrlock.h ../threads/synch.h \
+ ../filesys/synchdisk.h ../machine/disk.h ../threads/synch.h
 stats.o: ../machine/stats.cc ../threads/copyright.h ../threads/utility.h \
  ../threads/copyright.h ../threads/bool.h ../machine/sysdep.h \
  /usr/include/stdio.h /usr/include/features.h \
@@ -985,8 +989,9 @@ timer.o: ../machine/timer.cc ../threads/copyright.h ../machine/timer.h \
  /usr/include/c++/4.6/bits/stl_tree.h /usr/include/c++/4.6/bits/stl_map.h \
  /usr/include/c++/4.6/bits/stl_multimap.h ../threads/scheduler.h \
  ../threads/list.h ../machine/interrupt.h ../threads/list.h \
- ../machine/stats.h ../machine/timer.h ../filesys/synchdisk.h \
- ../machine/disk.h ../threads/synch.h
+ ../machine/stats.h ../machine/timer.h ../threads/wrlock.h \
+ ../threads/synch.h ../filesys/synchdisk.h ../machine/disk.h \
+ ../threads/synch.h
 hello.o: ../threads/hello.cc ../threads/copyright.h /usr/include/stdio.h \
  /usr/include/features.h /usr/include/i386-linux-gnu/bits/predefs.h \
  /usr/include/i386-linux-gnu/sys/cdefs.h \
@@ -1084,9 +1089,9 @@ synchtest.o: ../threads/synchtest.cc ../threads/copyright.h \
  /usr/include/c++/4.6/bits/stl_tree.h /usr/include/c++/4.6/bits/stl_map.h \
  /usr/include/c++/4.6/bits/stl_multimap.h ../threads/scheduler.h \
  ../threads/list.h ../machine/interrupt.h ../threads/list.h \
- ../machine/stats.h ../machine/timer.h ../filesys/synchdisk.h \
- ../machine/disk.h ../threads/synch.h ../threads/synchlist.h \
- ../threads/synch.h ../threads/wrlock.h ../threads/producerconsumer.h \
+ ../machine/stats.h ../machine/timer.h ../threads/wrlock.h \
+ ../threads/synch.h ../filesys/synchdisk.h ../machine/disk.h \
+ ../threads/synch.h ../threads/synchlist.h ../threads/producerconsumer.h \
  ../threads/philosopher.h ../threads/barrier.h \
  /usr/include/c++/4.6/sstream /usr/include/c++/4.6/bits/sstream.tcc
 producerconsumer.o: ../threads/producerconsumer.cc \
@@ -1175,9 +1180,9 @@ producerconsumer.o: ../threads/producerconsumer.cc \
  /usr/include/c++/4.6/bits/stl_tree.h /usr/include/c++/4.6/bits/stl_map.h \
  /usr/include/c++/4.6/bits/stl_multimap.h ../threads/scheduler.h \
  ../threads/list.h ../machine/interrupt.h ../threads/list.h \
- ../machine/stats.h ../machine/timer.h ../filesys/synchdisk.h \
- ../machine/disk.h ../threads/synch.h ../threads/synchlist.h \
- ../threads/synch.h
+ ../machine/stats.h ../machine/timer.h ../threads/wrlock.h \
+ ../threads/synch.h ../filesys/synchdisk.h ../machine/disk.h \
+ ../threads/synch.h ../threads/synchlist.h
 philosopher.o: ../threads/philosopher.cc ../threads/philosopher.h \
  ../threads/copyright.h ../threads/system.h ../threads/utility.h \
  ../threads/bool.h ../machine/sysdep.h ../threads/copyright.h \
@@ -1264,12 +1269,14 @@ philosopher.o: ../threads/philosopher.cc ../threads/philosopher.h \
  /usr/include/c++/4.6/bits/stl_tree.h /usr/include/c++/4.6/bits/stl_map.h \
  /usr/include/c++/4.6/bits/stl_multimap.h ../threads/scheduler.h \
  ../threads/list.h ../machine/interrupt.h ../threads/list.h \
- ../machine/stats.h ../machine/timer.h ../filesys/synchdisk.h \
- ../machine/disk.h ../threads/synch.h ../threads/synch.h
-wrlock.o: ../threads/wrlock.cc ../threads/wrlock.h ../threads/copyright.h \
- ../threads/system.h ../threads/utility.h ../threads/bool.h \
- ../machine/sysdep.h ../threads/copyright.h /usr/include/stdio.h \
- /usr/include/features.h /usr/include/i386-linux-gnu/bits/predefs.h \
+ ../machine/stats.h ../machine/timer.h ../threads/wrlock.h \
+ ../threads/synch.h ../filesys/synchdisk.h ../machine/disk.h \
+ ../threads/synch.h
+wrlock.o: ../threads/wrlock.cc ../threads/copyright.h ../threads/wrlock.h \
+ ../threads/synch.h ../threads/thread.h ../threads/utility.h \
+ ../threads/bool.h ../machine/sysdep.h ../threads/copyright.h \
+ /usr/include/stdio.h /usr/include/features.h \
+ /usr/include/i386-linux-gnu/bits/predefs.h \
  /usr/include/i386-linux-gnu/sys/cdefs.h \
  /usr/include/i386-linux-gnu/bits/wordsize.h \
  /usr/include/i386-linux-gnu/gnu/stubs.h \
@@ -1280,7 +1287,7 @@ wrlock.o: ../threads/wrlock.cc ../threads/wrlock.h ../threads/copyright.h \
  /usr/include/_G_config.h /usr/include/wchar.h ../threads/stdarg.h \
  /usr/include/i386-linux-gnu/bits/stdio_lim.h \
  /usr/include/i386-linux-gnu/bits/sys_errlist.h /usr/include/string.h \
- /usr/include/xlocale.h ../threads/thread.h /usr/include/c++/4.6/string \
+ /usr/include/xlocale.h /usr/include/c++/4.6/string \
  /usr/include/c++/4.6/i686-linux-gnu/./bits/c++config.h \
  /usr/include/c++/4.6/i686-linux-gnu/./bits/os_defines.h \
  /usr/include/c++/4.6/i686-linux-gnu/./bits/cpu_defines.h \
@@ -1349,10 +1356,10 @@ wrlock.o: ../threads/wrlock.cc ../threads/wrlock.h ../threads/copyright.h \
  ../userprog/bitmap.h ../filesys/openfile.h ../userprog/addrspace.h \
  ../filesys/filesys.h ../filesys/openfile.h /usr/include/c++/4.6/map \
  /usr/include/c++/4.6/bits/stl_tree.h /usr/include/c++/4.6/bits/stl_map.h \
- /usr/include/c++/4.6/bits/stl_multimap.h ../threads/scheduler.h \
- ../threads/list.h ../machine/interrupt.h ../threads/list.h \
- ../machine/stats.h ../machine/timer.h ../filesys/synchdisk.h \
- ../machine/disk.h ../threads/synch.h ../threads/synch.h
+ /usr/include/c++/4.6/bits/stl_multimap.h ../threads/list.h \
+ ../threads/system.h ../threads/scheduler.h ../machine/interrupt.h \
+ ../threads/list.h ../machine/stats.h ../machine/timer.h \
+ ../filesys/synchdisk.h ../machine/disk.h ../threads/synch.h
 barrier.o: ../threads/barrier.cc ../threads/barrier.h \
  ../threads/copyright.h ../threads/system.h ../threads/utility.h \
  ../threads/bool.h ../machine/sysdep.h ../threads/copyright.h \
@@ -1439,8 +1446,9 @@ barrier.o: ../threads/barrier.cc ../threads/barrier.h \
  /usr/include/c++/4.6/bits/stl_tree.h /usr/include/c++/4.6/bits/stl_map.h \
  /usr/include/c++/4.6/bits/stl_multimap.h ../threads/scheduler.h \
  ../threads/list.h ../machine/interrupt.h ../threads/list.h \
- ../machine/stats.h ../machine/timer.h ../filesys/synchdisk.h \
- ../machine/disk.h ../threads/synch.h ../threads/synch.h
+ ../machine/stats.h ../machine/timer.h ../threads/wrlock.h \
+ ../threads/synch.h ../filesys/synchdisk.h ../machine/disk.h \
+ ../threads/synch.h
 addrspace.o: ../userprog/addrspace.cc ../threads/copyright.h \
  ../threads/system.h ../threads/copyright.h ../threads/utility.h \
  ../threads/bool.h ../machine/sysdep.h /usr/include/stdio.h \
@@ -1526,9 +1534,9 @@ addrspace.o: ../userprog/addrspace.cc ../threads/copyright.h \
  /usr/include/c++/4.6/bits/stl_tree.h /usr/include/c++/4.6/bits/stl_map.h \
  /usr/include/c++/4.6/bits/stl_multimap.h ../threads/scheduler.h \
  ../threads/list.h ../machine/interrupt.h ../threads/list.h \
- ../machine/stats.h ../machine/timer.h ../filesys/synchdisk.h \
- ../machine/disk.h ../threads/synch.h ../userprog/addrspace.h \
- ../bin/noff.h
+ ../machine/stats.h ../machine/timer.h ../threads/wrlock.h \
+ ../threads/synch.h ../filesys/synchdisk.h ../machine/disk.h \
+ ../threads/synch.h ../userprog/addrspace.h ../bin/noff.h
 bitmap.o: ../userprog/bitmap.cc ../threads/copyright.h \
  ../userprog/bitmap.h ../threads/utility.h ../threads/copyright.h \
  ../threads/bool.h ../machine/sysdep.h /usr/include/stdio.h \
@@ -1631,8 +1639,9 @@ exception.o: ../userprog/exception.cc ../userprog/../machine/machine.h \
  /usr/include/c++/4.6/bits/stl_map.h \
  /usr/include/c++/4.6/bits/stl_multimap.h ../threads/scheduler.h \
  ../threads/list.h ../machine/interrupt.h ../threads/list.h \
- ../machine/stats.h ../machine/timer.h ../filesys/synchdisk.h \
- ../machine/disk.h ../threads/synch.h ../userprog/syscall.h
+ ../machine/stats.h ../machine/timer.h ../threads/wrlock.h \
+ ../threads/synch.h ../filesys/synchdisk.h ../machine/disk.h \
+ ../threads/synch.h ../userprog/syscall.h
 progtest.o: ../userprog/progtest.cc ../threads/copyright.h \
  ../threads/system.h ../threads/copyright.h ../threads/utility.h \
  ../threads/bool.h ../machine/sysdep.h /usr/include/stdio.h \
@@ -1718,9 +1727,9 @@ progtest.o: ../userprog/progtest.cc ../threads/copyright.h \
  /usr/include/c++/4.6/bits/stl_tree.h /usr/include/c++/4.6/bits/stl_map.h \
  /usr/include/c++/4.6/bits/stl_multimap.h ../threads/scheduler.h \
  ../threads/list.h ../machine/interrupt.h ../threads/list.h \
- ../machine/stats.h ../machine/timer.h ../filesys/synchdisk.h \
- ../machine/disk.h ../threads/synch.h ../machine/console.h \
- ../userprog/addrspace.h
+ ../machine/stats.h ../machine/timer.h ../threads/wrlock.h \
+ ../threads/synch.h ../filesys/synchdisk.h ../machine/disk.h \
+ ../threads/synch.h ../machine/console.h ../userprog/addrspace.h
 console.o: ../machine/console.cc ../threads/copyright.h \
  ../machine/console.h ../threads/utility.h ../threads/copyright.h \
  ../threads/bool.h ../machine/sysdep.h /usr/include/stdio.h \
@@ -1807,8 +1816,9 @@ console.o: ../machine/console.cc ../threads/copyright.h \
  /usr/include/c++/4.6/bits/stl_tree.h /usr/include/c++/4.6/bits/stl_map.h \
  /usr/include/c++/4.6/bits/stl_multimap.h ../threads/scheduler.h \
  ../threads/list.h ../machine/interrupt.h ../threads/list.h \
- ../machine/stats.h ../machine/timer.h ../filesys/synchdisk.h \
- ../machine/disk.h ../threads/synch.h
+ ../machine/stats.h ../machine/timer.h ../threads/wrlock.h \
+ ../threads/synch.h ../filesys/synchdisk.h ../machine/disk.h \
+ ../threads/synch.h
 machine.o: ../machine/machine.cc ../threads/copyright.h \
  ../machine/machine.h ../threads/utility.h ../threads/copyright.h \
  ../threads/bool.h ../machine/sysdep.h /usr/include/stdio.h \
@@ -1895,8 +1905,9 @@ machine.o: ../machine/machine.cc ../threads/copyright.h \
  /usr/include/c++/4.6/bits/stl_map.h \
  /usr/include/c++/4.6/bits/stl_multimap.h ../threads/scheduler.h \
  ../threads/list.h ../machine/interrupt.h ../threads/list.h \
- ../machine/stats.h ../machine/timer.h ../filesys/synchdisk.h \
- ../machine/disk.h ../threads/synch.h
+ ../machine/stats.h ../machine/timer.h ../threads/wrlock.h \
+ ../threads/synch.h ../filesys/synchdisk.h ../machine/disk.h \
+ ../threads/synch.h
 mipssim.o: ../machine/mipssim.cc ../threads/copyright.h \
  ../machine/machine.h ../threads/utility.h ../threads/copyright.h \
  ../threads/bool.h ../machine/sysdep.h /usr/include/stdio.h \
@@ -1984,8 +1995,9 @@ mipssim.o: ../machine/mipssim.cc ../threads/copyright.h \
  /usr/include/c++/4.6/bits/stl_map.h \
  /usr/include/c++/4.6/bits/stl_multimap.h ../threads/scheduler.h \
  ../threads/list.h ../machine/interrupt.h ../threads/list.h \
- ../machine/stats.h ../machine/timer.h ../filesys/synchdisk.h \
- ../machine/disk.h ../threads/synch.h
+ ../machine/stats.h ../machine/timer.h ../threads/wrlock.h \
+ ../threads/synch.h ../filesys/synchdisk.h ../machine/disk.h \
+ ../threads/synch.h
 translate.o: ../machine/translate.cc ../threads/copyright.h \
  ../machine/machine.h ../threads/utility.h ../threads/copyright.h \
  ../threads/bool.h ../machine/sysdep.h /usr/include/stdio.h \
@@ -2073,7 +2085,8 @@ translate.o: ../machine/translate.cc ../threads/copyright.h \
  /usr/include/c++/4.6/bits/istream.tcc ../machine/machine.h \
  ../threads/scheduler.h ../threads/list.h ../machine/interrupt.h \
  ../threads/list.h ../machine/stats.h ../machine/timer.h \
- ../filesys/synchdisk.h ../machine/disk.h ../threads/synch.h
+ ../threads/wrlock.h ../threads/synch.h ../filesys/synchdisk.h \
+ ../machine/disk.h ../threads/synch.h
 directory.o: ../filesys/directory.cc ../threads/copyright.h \
  ../threads/utility.h ../threads/copyright.h ../threads/bool.h \
  ../machine/sysdep.h /usr/include/stdio.h /usr/include/features.h \
@@ -2143,8 +2156,9 @@ directory.o: ../filesys/directory.cc ../threads/copyright.h \
  /usr/include/i386-linux-gnu/bits/environments.h \
  /usr/include/i386-linux-gnu/bits/confname.h /usr/include/getopt.h \
  /usr/include/c++/4.6/i686-linux-gnu/./bits/atomic_word.h \
- /usr/include/c++/4.6/bits/basic_string.tcc /usr/include/c++/4.6/sstream \
- /usr/include/c++/4.6/istream /usr/include/c++/4.6/ios \
+ /usr/include/c++/4.6/bits/basic_string.tcc ../threads/system.h \
+ ../threads/utility.h ../threads/thread.h /usr/include/c++/4.6/iostream \
+ /usr/include/c++/4.6/ostream /usr/include/c++/4.6/ios \
  /usr/include/c++/4.6/bits/ios_base.h \
  /usr/include/c++/4.6/bits/locale_classes.h \
  /usr/include/c++/4.6/bits/locale_classes.tcc \
@@ -2156,18 +2170,18 @@ directory.o: ../filesys/directory.cc ../threads/copyright.h \
  /usr/include/c++/4.6/bits/streambuf_iterator.h \
  /usr/include/c++/4.6/i686-linux-gnu/./bits/ctype_inline.h \
  /usr/include/c++/4.6/bits/locale_facets.tcc \
- /usr/include/c++/4.6/bits/basic_ios.tcc /usr/include/c++/4.6/ostream \
- /usr/include/c++/4.6/bits/ostream.tcc \
- /usr/include/c++/4.6/bits/istream.tcc \
- /usr/include/c++/4.6/bits/sstream.tcc ../threads/system.h \
- ../threads/utility.h ../threads/thread.h /usr/include/c++/4.6/iostream \
- ../machine/machine.h ../machine/translate.h ../machine/disk.h \
- ../userprog/addrspace.h ../filesys/filesys.h /usr/include/c++/4.6/map \
+ /usr/include/c++/4.6/bits/basic_ios.tcc \
+ /usr/include/c++/4.6/bits/ostream.tcc /usr/include/c++/4.6/istream \
+ /usr/include/c++/4.6/bits/istream.tcc ../machine/machine.h \
+ ../machine/translate.h ../machine/disk.h ../userprog/addrspace.h \
+ ../filesys/filesys.h /usr/include/c++/4.6/map \
  /usr/include/c++/4.6/bits/stl_tree.h /usr/include/c++/4.6/bits/stl_map.h \
  /usr/include/c++/4.6/bits/stl_multimap.h ../threads/scheduler.h \
  ../threads/list.h ../machine/interrupt.h ../threads/list.h \
- ../machine/stats.h ../machine/timer.h ../filesys/synchdisk.h \
- ../threads/synch.h
+ ../machine/stats.h ../machine/timer.h ../threads/wrlock.h \
+ ../threads/synch.h ../filesys/synchdisk.h ../threads/synch.h \
+ ../filesys/fileutil.h /usr/include/c++/4.6/sstream \
+ /usr/include/c++/4.6/bits/sstream.tcc
 filehdr.o: ../filesys/filehdr.cc ../threads/copyright.h \
  ../threads/system.h ../threads/copyright.h ../threads/utility.h \
  ../threads/bool.h ../machine/sysdep.h /usr/include/stdio.h \
@@ -2253,8 +2267,9 @@ filehdr.o: ../filesys/filehdr.cc ../threads/copyright.h \
  /usr/include/c++/4.6/bits/stl_tree.h /usr/include/c++/4.6/bits/stl_map.h \
  /usr/include/c++/4.6/bits/stl_multimap.h ../threads/scheduler.h \
  ../threads/list.h ../machine/interrupt.h ../threads/list.h \
- ../machine/stats.h ../machine/timer.h ../filesys/synchdisk.h \
- ../machine/disk.h ../threads/synch.h ../filesys/filehdr.h
+ ../machine/stats.h ../machine/timer.h ../threads/wrlock.h \
+ ../threads/synch.h ../filesys/synchdisk.h ../machine/disk.h \
+ ../threads/synch.h ../filesys/filehdr.h
 filesys.o: ../filesys/filesys.cc ../threads/copyright.h ../machine/disk.h \
  ../threads/utility.h ../threads/copyright.h ../threads/bool.h \
  ../machine/sysdep.h /usr/include/stdio.h /usr/include/features.h \
@@ -2324,9 +2339,13 @@ filesys.o: ../filesys/filesys.cc ../threads/copyright.h ../machine/disk.h \
  /usr/include/i386-linux-gnu/bits/environments.h \
  /usr/include/i386-linux-gnu/bits/confname.h /usr/include/getopt.h \
  /usr/include/c++/4.6/i686-linux-gnu/./bits/atomic_word.h \
- /usr/include/c++/4.6/bits/basic_string.tcc /usr/include/c++/4.6/sstream \
- /usr/include/c++/4.6/istream /usr/include/c++/4.6/ios \
- /usr/include/c++/4.6/bits/ios_base.h \
+ /usr/include/c++/4.6/bits/basic_string.tcc ../filesys/filehdr.h \
+ ../filesys/filesys.h /usr/include/c++/4.6/map \
+ /usr/include/c++/4.6/bits/stl_tree.h /usr/include/c++/4.6/bits/stl_map.h \
+ /usr/include/c++/4.6/bits/stl_multimap.h ../threads/wrlock.h \
+ ../threads/synch.h ../threads/thread.h ../threads/utility.h \
+ /usr/include/c++/4.6/iostream /usr/include/c++/4.6/ostream \
+ /usr/include/c++/4.6/ios /usr/include/c++/4.6/bits/ios_base.h \
  /usr/include/c++/4.6/bits/locale_classes.h \
  /usr/include/c++/4.6/bits/locale_classes.tcc \
  /usr/include/c++/4.6/streambuf /usr/include/c++/4.6/bits/streambuf.tcc \
@@ -2337,13 +2356,15 @@ filesys.o: ../filesys/filesys.cc ../threads/copyright.h ../machine/disk.h \
  /usr/include/c++/4.6/bits/streambuf_iterator.h \
  /usr/include/c++/4.6/i686-linux-gnu/./bits/ctype_inline.h \
  /usr/include/c++/4.6/bits/locale_facets.tcc \
- /usr/include/c++/4.6/bits/basic_ios.tcc /usr/include/c++/4.6/ostream \
- /usr/include/c++/4.6/bits/ostream.tcc \
- /usr/include/c++/4.6/bits/istream.tcc \
- /usr/include/c++/4.6/bits/sstream.tcc ../filesys/filehdr.h \
- ../filesys/filesys.h /usr/include/c++/4.6/map \
- /usr/include/c++/4.6/bits/stl_tree.h /usr/include/c++/4.6/bits/stl_map.h \
- /usr/include/c++/4.6/bits/stl_multimap.h
+ /usr/include/c++/4.6/bits/basic_ios.tcc \
+ /usr/include/c++/4.6/bits/ostream.tcc /usr/include/c++/4.6/istream \
+ /usr/include/c++/4.6/bits/istream.tcc ../machine/machine.h \
+ ../machine/translate.h ../machine/disk.h ../userprog/addrspace.h \
+ ../filesys/filesys.h ../threads/list.h ../threads/system.h \
+ ../threads/scheduler.h ../machine/interrupt.h ../threads/list.h \
+ ../machine/stats.h ../machine/timer.h ../threads/wrlock.h \
+ ../filesys/synchdisk.h ../threads/synch.h ../filesys/fileutil.h \
+ /usr/include/c++/4.6/sstream /usr/include/c++/4.6/bits/sstream.tcc
 fstest.o: ../filesys/fstest.cc ../threads/copyright.h \
  ../threads/utility.h ../threads/copyright.h ../threads/bool.h \
  ../machine/sysdep.h /usr/include/stdio.h /usr/include/features.h \
@@ -2431,8 +2452,8 @@ fstest.o: ../filesys/fstest.cc ../threads/copyright.h \
  ../filesys/openfile.h ../userprog/addrspace.h ../filesys/filesys.h \
  ../threads/scheduler.h ../threads/list.h ../machine/interrupt.h \
  ../threads/list.h ../machine/stats.h ../machine/timer.h \
- ../filesys/synchdisk.h ../machine/disk.h ../threads/synch.h \
- ../threads/thread.h
+ ../threads/wrlock.h ../threads/synch.h ../filesys/synchdisk.h \
+ ../machine/disk.h ../threads/synch.h ../threads/thread.h
 openfile.o: ../filesys/openfile.cc ../threads/copyright.h \
  ../filesys/filehdr.h ../machine/disk.h ../threads/utility.h \
  ../threads/copyright.h ../threads/bool.h ../machine/sysdep.h \
@@ -2520,8 +2541,8 @@ openfile.o: ../filesys/openfile.cc ../threads/copyright.h \
  /usr/include/c++/4.6/bits/stl_tree.h /usr/include/c++/4.6/bits/stl_map.h \
  /usr/include/c++/4.6/bits/stl_multimap.h ../threads/scheduler.h \
  ../threads/list.h ../machine/interrupt.h ../threads/list.h \
- ../machine/stats.h ../machine/timer.h ../filesys/synchdisk.h \
- ../threads/synch.h
+ ../machine/stats.h ../machine/timer.h ../threads/wrlock.h \
+ ../threads/synch.h ../filesys/synchdisk.h ../threads/synch.h
 synchdisk.o: ../filesys/synchdisk.cc ../threads/copyright.h \
  ../filesys/synchdisk.h ../machine/disk.h ../threads/utility.h \
  ../threads/copyright.h ../threads/bool.h ../machine/sysdep.h \
@@ -2608,6 +2629,92 @@ synchdisk.o: ../filesys/synchdisk.cc ../threads/copyright.h \
  ../filesys/openfile.h /usr/include/c++/4.6/map \
  /usr/include/c++/4.6/bits/stl_tree.h /usr/include/c++/4.6/bits/stl_map.h \
  /usr/include/c++/4.6/bits/stl_multimap.h ../threads/list.h
+fileutil.o: ../filesys/fileutil.cc ../filesys/fileutil.h \
+ /usr/include/c++/4.6/string \
+ /usr/include/c++/4.6/i686-linux-gnu/./bits/c++config.h \
+ /usr/include/c++/4.6/i686-linux-gnu/./bits/os_defines.h \
+ /usr/include/features.h /usr/include/i386-linux-gnu/bits/predefs.h \
+ /usr/include/i386-linux-gnu/sys/cdefs.h \
+ /usr/include/i386-linux-gnu/bits/wordsize.h \
+ /usr/include/i386-linux-gnu/gnu/stubs.h \
+ /usr/include/i386-linux-gnu/gnu/stubs-32.h \
+ /usr/include/c++/4.6/i686-linux-gnu/./bits/cpu_defines.h \
+ /usr/include/c++/4.6/bits/stringfwd.h \
+ /usr/include/c++/4.6/bits/char_traits.h \
+ /usr/include/c++/4.6/bits/stl_algobase.h \
+ /usr/include/c++/4.6/bits/functexcept.h \
+ /usr/include/c++/4.6/bits/exception_defines.h \
+ /usr/include/c++/4.6/bits/cpp_type_traits.h \
+ /usr/include/c++/4.6/ext/type_traits.h \
+ /usr/include/c++/4.6/ext/numeric_traits.h \
+ /usr/include/c++/4.6/bits/stl_pair.h /usr/include/c++/4.6/bits/move.h \
+ /usr/include/c++/4.6/bits/concept_check.h \
+ /usr/include/c++/4.6/bits/stl_iterator_base_types.h \
+ /usr/include/c++/4.6/bits/stl_iterator_base_funcs.h \
+ /usr/include/c++/4.6/bits/stl_iterator.h \
+ /usr/include/c++/4.6/debug/debug.h /usr/include/c++/4.6/bits/postypes.h \
+ /usr/include/c++/4.6/cwchar /usr/include/wchar.h /usr/include/stdio.h \
+ ../threads/stdarg.h /usr/include/i386-linux-gnu/bits/wchar.h \
+ /usr/lib/gcc/i686-linux-gnu/4.6/include/stddef.h /usr/include/xlocale.h \
+ /usr/include/c++/4.6/bits/allocator.h \
+ /usr/include/c++/4.6/i686-linux-gnu/./bits/c++allocator.h \
+ /usr/include/c++/4.6/ext/new_allocator.h /usr/include/c++/4.6/new \
+ /usr/include/c++/4.6/exception /usr/include/c++/4.6/bits/localefwd.h \
+ /usr/include/c++/4.6/i686-linux-gnu/./bits/c++locale.h \
+ /usr/include/c++/4.6/clocale /usr/include/locale.h \
+ /usr/include/i386-linux-gnu/bits/locale.h /usr/include/c++/4.6/iosfwd \
+ /usr/include/c++/4.6/cctype /usr/include/ctype.h \
+ /usr/include/i386-linux-gnu/bits/types.h \
+ /usr/include/i386-linux-gnu/bits/typesizes.h /usr/include/endian.h \
+ /usr/include/i386-linux-gnu/bits/endian.h \
+ /usr/include/i386-linux-gnu/bits/byteswap.h \
+ /usr/include/c++/4.6/bits/ostream_insert.h \
+ /usr/include/c++/4.6/bits/cxxabi_forced.h \
+ /usr/include/c++/4.6/bits/stl_function.h \
+ /usr/include/c++/4.6/backward/binders.h \
+ /usr/include/c++/4.6/bits/range_access.h \
+ /usr/include/c++/4.6/bits/basic_string.h \
+ /usr/include/c++/4.6/ext/atomicity.h \
+ /usr/include/c++/4.6/i686-linux-gnu/./bits/gthr.h \
+ /usr/include/c++/4.6/i686-linux-gnu/./bits/gthr-default.h \
+ /usr/include/pthread.h /usr/include/sched.h /usr/include/time.h \
+ /usr/include/i386-linux-gnu/bits/sched.h \
+ /usr/include/i386-linux-gnu/bits/time.h \
+ /usr/include/i386-linux-gnu/bits/timex.h \
+ /usr/include/i386-linux-gnu/bits/pthreadtypes.h \
+ /usr/include/i386-linux-gnu/bits/setjmp.h /usr/include/unistd.h \
+ /usr/include/i386-linux-gnu/bits/posix_opt.h \
+ /usr/include/i386-linux-gnu/bits/environments.h \
+ /usr/include/i386-linux-gnu/bits/confname.h /usr/include/getopt.h \
+ /usr/include/c++/4.6/i686-linux-gnu/./bits/atomic_word.h \
+ /usr/include/c++/4.6/initializer_list \
+ /usr/include/c++/4.6/bits/basic_string.tcc /usr/include/c++/4.6/vector \
+ /usr/include/c++/4.6/bits/stl_construct.h \
+ /usr/include/c++/4.6/bits/stl_uninitialized.h \
+ /usr/include/c++/4.6/bits/stl_vector.h \
+ /usr/include/c++/4.6/bits/stl_bvector.h \
+ /usr/include/c++/4.6/bits/vector.tcc /usr/include/c++/4.6/sstream \
+ /usr/include/c++/4.6/istream /usr/include/c++/4.6/ios \
+ /usr/include/c++/4.6/bits/ios_base.h \
+ /usr/include/c++/4.6/bits/locale_classes.h \
+ /usr/include/c++/4.6/bits/locale_classes.tcc \
+ /usr/include/c++/4.6/streambuf /usr/include/c++/4.6/bits/streambuf.tcc \
+ /usr/include/c++/4.6/bits/basic_ios.h \
+ /usr/include/c++/4.6/bits/locale_facets.h /usr/include/c++/4.6/cwctype \
+ /usr/include/wctype.h \
+ /usr/include/c++/4.6/i686-linux-gnu/./bits/ctype_base.h \
+ /usr/include/c++/4.6/bits/streambuf_iterator.h \
+ /usr/include/c++/4.6/i686-linux-gnu/./bits/ctype_inline.h \
+ /usr/include/c++/4.6/bits/locale_facets.tcc \
+ /usr/include/c++/4.6/bits/basic_ios.tcc /usr/include/c++/4.6/ostream \
+ /usr/include/c++/4.6/bits/ostream.tcc \
+ /usr/include/c++/4.6/bits/istream.tcc \
+ /usr/include/c++/4.6/bits/sstream.tcc ../filesys/directory.h \
+ ../threads/copyright.h ../filesys/openfile.h ../threads/utility.h \
+ ../threads/copyright.h ../threads/bool.h ../machine/sysdep.h \
+ /usr/include/libio.h /usr/include/_G_config.h \
+ /usr/include/i386-linux-gnu/bits/stdio_lim.h \
+ /usr/include/i386-linux-gnu/bits/sys_errlist.h /usr/include/string.h
 disk.o: ../machine/disk.cc ../threads/copyright.h ../machine/disk.h \
  ../threads/utility.h ../threads/copyright.h ../threads/bool.h \
  ../machine/sysdep.h /usr/include/stdio.h /usr/include/features.h \
@@ -2694,8 +2801,9 @@ disk.o: ../machine/disk.cc ../threads/copyright.h ../machine/disk.h \
  /usr/include/c++/4.6/bits/stl_map.h \
  /usr/include/c++/4.6/bits/stl_multimap.h ../threads/scheduler.h \
  ../threads/list.h ../machine/interrupt.h ../threads/list.h \
- ../machine/stats.h ../machine/timer.h ../filesys/synchdisk.h \
- ../machine/disk.h ../threads/synch.h
+ ../machine/stats.h ../machine/timer.h ../threads/wrlock.h \
+ ../threads/synch.h ../filesys/synchdisk.h ../machine/disk.h \
+ ../threads/synch.h
 # DEPENDENCIES MUST END AT END OF FILE
 # IF YOU PUT STUFF HERE IT WILL GO AWAY
 # see make depend above

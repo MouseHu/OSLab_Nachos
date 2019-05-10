@@ -182,7 +182,8 @@ FileHeader::Deallocate(BitMap *freeMap)
         ASSERT(freeMap->Test((int) l2Index));
         freeMap->Clear((int) l2Index);
     }
-
+    numBytes=0;
+    numSectors=0;
 }
 
 //----------------------------------------------------------------------
@@ -209,9 +210,9 @@ FileHeader::FetchFrom(int sector)
 void
 FileHeader::WriteBack(int sector)
 {
-    time_t t;
-    time(&t);
-    modifyTime = int(t);
+    // time_t t;
+    // time(&t);
+    // modifyTime = int(t);
     synchDisk->WriteSector(sector, (char *)this); 
 }
 
@@ -285,9 +286,9 @@ FileHeader::Print()
     char *data = new char[SectorSize];
 
     printf("FileHeader contents.  File size: %d.  File blocks:\n", numBytes);
-    printf("Create time: %s\n",GetTime(createTime));
-    printf("Modify time: %s\n",GetTime(modifyTime));
-    printf("Visit time: %s\n",GetTime(visitTime));
+    printf("Create time: %s",GetTime(createTime));
+    printf("Modify time: %s",GetTime(modifyTime));
+    printf("Visit time: %s",GetTime(visitTime));
     for (i = 0; i < numSectors; i++)
 	printf("%d ", dataSectors[i]);
     printf("\nFile contents:\n");
@@ -310,7 +311,8 @@ void FileHeader::ClearSector( int sectorNum ){
 	synchDisk->WriteSector(sectorNum, (char *)allZero);
 }
 
-bool FileHeader::ChangeSize( BitMap *freeMap,int newSize ){
+bool FileHeader::ChangeSize( BitMap* freeMap,int newSize ){
+    
     ASSERT(newSize>=numBytes)
     int newNumSector = divRoundUp(newSize,SectorSize);
     int num_l1index = SectorSize/sizeof(int);
@@ -321,6 +323,7 @@ bool FileHeader::ChangeSize( BitMap *freeMap,int newSize ){
     while(numSectors<MIN(NumDirect,newNumSector))
     {
         dataSectors[numSectors++]= freeMap->Find();
+        // printf("Allocate:%d\n",dataSectors[numSectors-1]);
     }
     if(newNumSector>NumDirect){
         if(l1Index<=0)
@@ -358,7 +361,20 @@ bool FileHeader::ChangeSize( BitMap *freeMap,int newSize ){
         synchDisk->WriteSector(l2Index, (char *)IndexBuffer );
            
     }
-    
-    
+    numBytes = newSize;
+    // printf("??%d\n",numBytes);
+    numSectors = divRoundUp(newSize,SectorSize);
+    return TRUE;
 }
 
+void FileHeader::Modify(){
+    time_t t;
+    time(&t);
+    modifyTime = int(t);
+}
+
+void FileHeader::Visit(){
+    time_t t;
+    time(&t);
+    visitTime = int(t);
+}

@@ -20,7 +20,7 @@
 #include "openfile.h"
 #include <vector>
 #include <string>
-#include <sstream>
+
 #define FileNameMaxLen 		18	// for simplicity, we assume 
 					// file names are <= 9 characters long
 #define TypeNameMaxLen 		9
@@ -84,11 +84,11 @@ class Directory {
     DirectoryEntry* Find(std::vector<DirectoryEntry*>* vector,const char* dir);		// Find the sector number of the 
 					// FileHeader for file: "name"
 
-    bool Add(char *name,char* directory, char* type, int fileSector, int selfSector);  // Add a file name into the directory
+    bool Add(const char *name,const char* directory, const char* type, int fileSector, int selfSector);  // Add a file name into the directory
 
     DirectoryEntry* FindEntry(const char* name,const char* dir);
 
-    bool Remove(char *name,char* dir);		// Remove a file from the directory
+    bool Remove(const char *name,const char* dir);		// Remove a file from the directory
 
     void List();			// Print the names of all the files
 					//  in the directory

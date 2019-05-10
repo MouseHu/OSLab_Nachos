@@ -52,6 +52,7 @@
 
 #include "utility.h"
 #include "system.h"
+// #include "fileutil.h"
 
 #ifdef THREADS
 extern int testnum;
@@ -60,7 +61,7 @@ extern int testnum;
 // External functions used by this file
 extern void SynchTest(void);
 extern void ThreadTest(void), Copy(char *unixFile, char *nachosFile);
-extern void Print(char *file), PerformanceTest(void);
+extern void Print(char *file), PerformanceTest(void),PipeTest1(void),PipeTest2(void);
 extern void StartProcess(char *file), ConsoleTest(char *in, char *out);
 extern void MailTest(int networkID);
 extern void PrintHello();
@@ -158,6 +159,10 @@ int main(int argc, char **argv)
             fileSystem->Print();
 	} else if (!strcmp(*argv, "-t")) {	// performance test
             PerformanceTest();
+	} else if (!strcmp(*argv, "-p1")) {	// performance test
+            PipeTest1();
+	} else if (!strcmp(*argv, "-p2")) {	// performance test
+            PipeTest2();
 	}
 #endif // FILESYS
 #ifdef NETWORK

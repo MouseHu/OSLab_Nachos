@@ -15,7 +15,7 @@
 #include "interrupt.h"
 #include "stats.h"
 #include "timer.h"
-// #include "wrlock.h"
+#include "wrlock.h"
 #include <map>
 //add by huhao
 #define MAX_THREAD 128
@@ -48,8 +48,8 @@ extern Machine* machine;	// user program memory and registers
 // 	int openCount;
 // 	WRlock* fileLock;
 // };
+// extern std::map<int,ActiveFile*>* activeFileList;
 extern FileSystem  *fileSystem;
-// extern std::map<int,ActiveFile*> ActiveFile;
 #endif
 
 #ifdef FILESYS

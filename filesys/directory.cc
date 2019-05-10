@@ -25,6 +25,7 @@
 #include "filehdr.h"
 #include "directory.h"
 #include "system.h"
+#include "fileutil.h"
 //----------------------------------------------------------------------
 // Directory::Directory
 // 	Initialize a directory; initially, the directory is completely
@@ -48,8 +49,10 @@ Directory::Directory(int size)
 
 Directory::~Directory()
 { 
+    printf("here.%d\n",root->size());
     for(int i =0;i<root->size();i++){
-        delete &(*root)[i];
+        // printf("%s\n",(*root)[i]->name);
+        delete (*root)[i];
     }
 } 
 void PrintSector(int sector){
@@ -78,6 +81,7 @@ Directory::FetchFrom(OpenFile *file)
     //printf("Directory Fetch From.\n");
     //std::vector<int>* root;
     (void) file->ReadAt((char *)&tableSize, sizeof(int),0);
+    // printf("%d\n",tableSize);
     root = new std::vector<DirectoryEntry*>();
     DirectoryEntry* de;
     for(int i=0;i<tableSize;i++){
@@ -196,39 +200,8 @@ DirectoryEntry::WriteBack(OpenFile *file)
 // 	    return table[i].sector;
 //     return -1;
 // }
-std::string Join(std::vector<std::string> vec, char join)
-{
-    std::stringstream joined;
-    for(int i=0;i<vec.size();i++){
-        joined<<vec[i]<<join;
-    }
-    return joined.str();
-}
 
-std::vector<std::string> Split(const std::string& s, char delimiter)
-{
-    std::vector<std::string> tokens;
-    std::string token;
-    std::istringstream tokenStream(s);
-    while (std::getline(tokenStream, token, delimiter))
-    {
-        tokens.push_back(token);
-    }
-    return tokens;
-}
-void StrCopy(char* src,char* dst){
-    if(src==NULL){
-        dst = NULL;
-        return;
-    }
-    int size = 0;
-    while(src[size++]!='\0');
-    //printf("copy size:%d\n",size);
-    //dst = new char[size];
-    for(int i=0;i<size;i++){
-        dst[i] = src[i];
-    }
-}
+
 //----------------------------------------------------------------------
 // Directory::Add
 // 	Add a file into the directory.  Return TRUE if successful;
@@ -241,9 +214,9 @@ void StrCopy(char* src,char* dst){
 //----------------------------------------------------------------------
 
 bool
-Directory::Add(char *name,char* directory,char* type, int fileSector, int selfSector)
+Directory::Add(const char *name,const char* directory,const char* type, int fileSector, int selfSector)
 { 
-
+    printf("%s %s\n",name,directory);
     if (FindEntry(name,directory)!=NULL)
 	    return FALSE;
     FileHeader* hdr = new FileHeader;
@@ -266,7 +239,7 @@ Directory::Add(char *name,char* directory,char* type, int fileSector, int selfSe
         std::vector<std::string> split_vector = Split(directory,'\\');
         const char* parentName = split_vector[split_vector.size()-1].c_str();
         split_vector.pop_back();
-        DirectoryEntry* parent = FindEntry(parentName,Join(split_vector,'\\').c_str());
+        DirectoryEntry* parent = FindEntry(parentName,Join(split_vector,'\\'));
         if(parent->selfSector==-1)
             return false;
         entry->parent = parent;
@@ -276,31 +249,11 @@ Directory::Add(char *name,char* directory,char* type, int fileSector, int selfSe
     return TRUE;	// no space.  Fix when we have extensible files.
 }
 
-bool VectorRemove(std::vector<DirectoryEntry*>* vector,DirectoryEntry *entry){
-    std::vector<DirectoryEntry*>::iterator iter = vector->begin();
-    for(;iter!=vector->end();iter++){
-        if((**iter) == *entry){
-            iter = vector->erase(iter);
-            return TRUE;
-        }
-        else{
-            iter++;
-        }
-    }
-    return FALSE;
-}
 
-bool MyStrCmp(char* a,char* b ){
-    if(a==NULL && b==NULL){
-        return 0;
-    }
-    if(a==NULL || b == NULL){
-        return 1;
-    }
-    return strcmp(a,b);
-}
+
+
 bool DirectoryEntry::operator==(DirectoryEntry &temp){
-    return !(MyStrCmp(name,temp.name)&&MyStrCmp(type,temp.type)&&MyStrCmp(directory,temp.directory));
+    return !(StrCmp(name,temp.name)&&StrCmp(type,temp.type)&&StrCmp(directory,temp.directory));
 }
 //----------------------------------------------------------------------
 // Directory::Remove
@@ -311,7 +264,7 @@ bool DirectoryEntry::operator==(DirectoryEntry &temp){
 //----------------------------------------------------------------------
 
 bool
-Directory::Remove(char *name,char* dir)
+Directory::Remove(const char *name,const char* dir)
 { 
     DEBUG('f',"Remove Directory\n");
     DirectoryEntry* entry= FindEntry(name,dir);
@@ -364,9 +317,11 @@ Directory::Print()
     FileHeader *hdr = new FileHeader;
 
     
-    printf("Directory contents:\n");
+    printf("Directory contents:%d\n",tableSize);
     for (int i = 0; i < tableSize; i++){
 	    printf("Name: %s, Sector: %d\n", (*root)[i]->name, (*root)[i]->fileSector);
+        if((*root)[i]->fileSector<0)
+            continue;
         hdr->FetchFrom((*root)[i]->fileSector);
 	    hdr->Print();
 	}
@@ -398,8 +353,9 @@ Directory::FindEntry(const char* name,const char *dir){
         return tmp;
     }
     else{
+        printf("Wtfff :%s %s\n",name,dir);
         std::vector<std::string> dirs = Split(std::string(dir),'\\');
-        
+        printf("%d",(int)&dirs);
         for(int i=0;i<dirs.size();i++){
             entryDir=Find(entryDir,dirs[i].c_str())->child;
         }

@@ -37,12 +37,13 @@
 
 
 #include "copyright.h"
+// #include "system.h"
 #include "openfile.h"
 // #include "wrlock.h"
 // #include "system.h"
-#include "map"
-
-
+#include <map>
+class WRlock;
+// extern std::map<int,ActiveFile>* activeFileList;
 #ifdef FILESYS_STUB 		// Temporarily implement file system calls as 
 				// calls to UNIX, until the real file system
 				// implementation is available
@@ -70,6 +71,13 @@ class FileSystem {
 };
 
 #else // FILESYS
+class ActiveFile{
+public:
+	int hdrSector;
+	int openCount;
+	WRlock* fileLock;
+};
+
 class FileSystem {
   public:
     FileSystem(bool format);		// Initialize the file system.
@@ -79,33 +87,32 @@ class FileSystem {
 					// the disk, so initialize the directory
     					// and the bitmap of free blocks.
 
-    bool Create(char *name, int initialSize,char* dir=NULL,char* type=NULL);  	
+    bool Create(char *name, int initialSize);  	
 					// Create a file (UNIX creat)
 
-    OpenFile* Open(char *name,char* dir=NULL,char* type=NULL); 	// Open a file (UNIX open)
+    OpenFile* Open(char *name); 	// Open a file (UNIX open)
 
-    bool Remove(char *name,char* dir=NULL);  		// Delete a file (UNIX unlink)
+    bool Remove(char *name);  		// Delete a file (UNIX unlink)
 
     void List();			// List all the files in the file system
 
     void Print();			// List all the files and their contents
 
-		// bool ActivateFile(int fdrSector);
-		// bool InactivateFile( int fdrSector );
+		WRlock* ActivateFile(int fdrSector);
+		bool InactivateFile( int fdrSector );
 
-  private:
-   OpenFile* freeMapFile;		// Bit map of free disk blocks,
+		int ReadPipe(char* data);
+		void WritePipe(char* data,int length);
+		std::map<int,ActiveFile*>* activeFileList;
+		OpenFile* freeMapFile;		// Bit map of free disk blocks,
 					// represented as a file
-   OpenFile* directoryFile;		// "Root" directory -- list of 
+    OpenFile* directoryFile;		// "Root" directory -- list of 
 					// file names, represented as a file
+   
+	 
 };
 
-// class ActiveFile{
-// public:
-// 	int hdrSector;
-// 	int openCount;
-// 	WRlock* fileLock;
-// };
+
 #endif // FILESYS
 
 #endif // FS_H

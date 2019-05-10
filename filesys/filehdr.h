@@ -57,7 +57,8 @@ class FileHeader {
 
     void Print();			// Print the contents of the file.
     void ClearSector( int sectorNum );
-
+    void Modify();
+    void Visit();
     bool ChangeSize( BitMap *freeMap,int newSize );
   private:
     int numBytes;			// Number of bytes in the file

@@ -1,7 +1,7 @@
-// #include "copyright.h"
+#include "copyright.h"
 #include "wrlock.h"
-// #include "system.h"
-
+#include "system.h"
+#include "synch.h"
 WRlock::WRlock(){
     reader_count = 0;
     wrlock = new Semaphore("wrlock",1);

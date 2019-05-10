@@ -54,7 +54,7 @@ Copy(char *from, char *to)
 	fclose(fp);
 	return;
     }
-    
+    printf("No create fault\n");
     openFile = fileSystem->Open(to);
     ASSERT(openFile != NULL);
     
@@ -184,3 +184,24 @@ PerformanceTest()
     stats->Print();
 }
 
+void PipeTest1(){
+    printf("Writing Data to the pipe\n");
+    char data[SectorSize+1];
+    for(int i=0;i<SectorSize+1;i++){
+        data[i]='\0';
+    }
+    printf("Input:");
+    scanf("%s",data);
+    fileSystem->WritePipe(data,strlen(data));
+}
+
+void PipeTest2(){
+    printf("Reading Data from the pipe\n");
+    char data[SectorSize+1];
+    for(int i=0;i<SectorSize+1;i++){
+        data[i]='\0';
+    }
+    int length = fileSystem->ReadPipe(data);
+    data[length]='\0';
+    printf("Reading Data:\n%s\n",data);
+}
