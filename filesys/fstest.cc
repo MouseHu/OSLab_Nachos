@@ -121,7 +121,7 @@ FileWrite()
 
     printf("Sequential write of %d byte file, in %d byte chunks\n", 
 	FileSize, ContentSize);
-    if (!fileSystem->Create(FileName, FileSize)) {// Create(FileName, 0)?
+    if (!fileSystem->Create(FileName, 1)) {// Create(FileName, 0)?
       printf("Perf test: can't create %s\n", FileName);
       return;
     }
@@ -142,7 +142,63 @@ FileWrite()
 }
 
 static void 
+MyFileWrite()
+{
+    OpenFile *openFile;    
+    int i, numBytes;
+
+    printf("Begin Writing\n");
+    openFile = fileSystem->Open(FileName);
+    if (openFile == NULL) {
+	printf("Perf test: unable to open %s\n", FileName);
+	return;
+    }
+
+    printf("trying to write %s\n",FileName);
+    openFile->fileLock->WriteAcquire();
+    openFile->fileLock->WriteRelease();
+    for (i = 0; i < FileSize; i += ContentSize) {
+        numBytes = openFile->Write(Contents, ContentSize);
+	if (numBytes < 10) {
+	    printf("Perf test: unable to write %s\n", FileName);
+	    delete openFile;
+	    return;
+	}
+    }
+    
+    delete openFile;	// close file
+    printf("Writing Finished.\n");
+}
+
+static void 
 FileRead()
+{
+    OpenFile *openFile;    
+    char *buffer = new char[ContentSize];
+    int i, numBytes;
+
+    printf("Begin Reading\n");
+
+    if ((openFile = fileSystem->Open(FileName)) == NULL) {
+	printf("Perf test: unable to open file %s\n", FileName);
+	delete [] buffer;
+	return;
+    }    
+    for (i = 0; i < FileSize; i += ContentSize) {
+        numBytes = openFile->Read(buffer, ContentSize);
+	if ((numBytes < 10) || strncmp(buffer, Contents, ContentSize)) {
+	    printf("Perf test: unable to read %s\n", FileName);
+	    delete openFile;
+	    delete [] buffer;
+	    return;
+	}
+    }
+    delete [] buffer;
+    delete openFile;	// close file
+}
+
+static void 
+MyFileRead()
 {
     OpenFile *openFile;    
     char *buffer = new char[ContentSize];
@@ -156,6 +212,10 @@ FileRead()
 	delete [] buffer;
 	return;
     }
+    printf("In the middle of %s 's reading,allow other reading,disallow writing.\n",currentThread->getName());
+    openFile->fileLock->ReadAcquire();
+    currentThread->Yield();
+    openFile->fileLock->ReadRelease();
     for (i = 0; i < FileSize; i += ContentSize) {
         numBytes = openFile->Read(buffer, ContentSize);
 	if ((numBytes < 10) || strncmp(buffer, Contents, ContentSize)) {
@@ -167,6 +227,7 @@ FileRead()
     }
     delete [] buffer;
     delete openFile;	// close file
+    printf("Reading Finished.\n");
 }
 
 void
@@ -204,4 +265,45 @@ void PipeTest2(){
     int length = fileSystem->ReadPipe(data);
     data[length]='\0';
     printf("Reading Data:\n%s\n",data);
+}
+
+void Read(int dummy){
+    printf("Reader :%s reading\n",currentThread->getName());
+    MyFileRead();
+}
+
+void FileSynchTest1(){
+    printf("Starting SynchTest 1\n");
+    FileWrite();
+    Thread* t1 = new Thread("reader 1");
+    t1->Fork(Read,0);
+    currentThread->Yield();
+    MyFileWrite();
+    fileSystem->Remove(FileName);
+    // printf("???\n");
+    stats->Print();
+}
+
+void FileSynchTest2(){
+    printf("Starting SynchTest 1\n");
+    FileWrite();
+    Thread* t1 = new Thread("reader 1");
+    t1->Fork(Read,0);
+    currentThread->Yield();
+    MyFileRead();
+    fileSystem->Remove(FileName);
+    // printf("???\n");
+    stats->Print();
+}
+void FileSynchTest3(){
+    printf("Starting SynchTest 1\n");
+    FileWrite();
+    Thread* t1 = new Thread("reader 1");
+    t1->Fork(Read,0);
+    currentThread->Yield();
+    fileSystem->Remove(FileName);
+    currentThread->Yield();
+    fileSystem->Remove(FileName);
+    // printf("???\n");
+    stats->Print();
 }

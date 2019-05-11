@@ -49,7 +49,7 @@ Directory::Directory(int size)
 
 Directory::~Directory()
 { 
-    printf("here.%d\n",root->size());
+    // printf("here.%d\n",root->size());
     for(int i =0;i<root->size();i++){
         // printf("%s\n",(*root)[i]->name);
         delete (*root)[i];
@@ -140,6 +140,7 @@ Directory::WriteBack(OpenFile *file)
     (void) file->WriteAt((char *)&tableSize, sizeof(int),0);
     for(int i=0;i<tableSize;i++){
         DirectoryEntry* de = (*root)[i];
+        printf("1\n");
         (void) file->WriteAt((char *)&(de->selfSector), sizeof(int),i*sizeof(int)+sizeof(int));//, sizeof(int));
         de->WriteBack(new OpenFile(de->selfSector));
     }
@@ -155,10 +156,11 @@ DirectoryEntry::WriteBack(OpenFile *file)
     (void) file->Write((char *)type, TypeNameMaxLen+1);
     (void) file->Write((char *)name, FileNameMaxLen+1);
     (void) file->Write((char *)directory, DirNameMaxLen+1);
-
+    printf("2\n");
     //(void) file->Write((char *)parentSector, sizeof(int));
     for(int i=0;i<childSize;i++){
         DirectoryEntry* de = (*child)[i];
+        printf("3 %d %d %d\n",i,childSize,de->selfSector);
         (void) file->Write((char *)&(de->selfSector), sizeof(int));//, sizeof(int));
         de->WriteBack(new OpenFile(de->selfSector));
     }
@@ -216,7 +218,7 @@ DirectoryEntry::WriteBack(OpenFile *file)
 bool
 Directory::Add(const char *name,const char* directory,const char* type, int fileSector, int selfSector)
 { 
-    printf("%s %s\n",name,directory);
+    // printf("%s %s\n",name,directory);
     if (FindEntry(name,directory)!=NULL)
 	    return FALSE;
     FileHeader* hdr = new FileHeader;
@@ -253,7 +255,7 @@ Directory::Add(const char *name,const char* directory,const char* type, int file
 
 
 bool DirectoryEntry::operator==(DirectoryEntry &temp){
-    return !(StrCmp(name,temp.name)&&StrCmp(type,temp.type)&&StrCmp(directory,temp.directory));
+    return !(StrCmp(name,temp.name)||StrCmp(type,temp.type)||StrCmp(directory,temp.directory));
 }
 //----------------------------------------------------------------------
 // Directory::Remove
@@ -277,14 +279,20 @@ Directory::Remove(const char *name,const char* dir)
         tableSize--;
     }
 	else{
+        printf("...\n");
         VectorRemove((parent->child),entry);
         parent->childSize--;
+        printf("%s \n",entry->name);
+        List();
+        // printf("hehehe %d\n",parent->child->size());
     }
     delete entry;
     return TRUE;	
 }
 void PrintEntry(DirectoryEntry* entry,int indent){
-    for(int i=0;i<indent;i++)printf("-");
+    
+    for(int i=0;i<indent;i++)printf("  ");
+    printf("-");
     printf("%s\n",entry->name);
     for(int i =0;i<entry->child->size();i++){
         PrintEntry((*(entry->child))[i],indent+1);
@@ -298,6 +306,7 @@ void PrintEntry(DirectoryEntry* entry,int indent){
 void
 Directory::List()
 {
+    printf("[root]\n");
     for(int i=0;i<root->size();i++){
         PrintEntry((*root)[i],0);
     }
@@ -353,9 +362,9 @@ Directory::FindEntry(const char* name,const char *dir){
         return tmp;
     }
     else{
-        printf("Wtfff :%s %s\n",name,dir);
+        // printf(" :%s %s\n",name,dir);
         std::vector<std::string> dirs = Split(std::string(dir),'\\');
-        printf("%d",(int)&dirs);
+        // printf("%d",(int)&dirs);
         for(int i=0;i<dirs.size();i++){
             entryDir=Find(entryDir,dirs[i].c_str())->child;
         }

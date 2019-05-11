@@ -194,6 +194,7 @@ FileSystem::Create(char *name, int initialSize)
     
     DEBUG('f', "Creating file %s, size %d\n", name, initialSize);
     
+    
     std::vector<std::string> split_vector = Split(name,'\\');
     const char* tmp = split_vector[split_vector.size()-1].c_str();
     char* fileName = new char[strlen(tmp)+1];
@@ -221,14 +222,10 @@ FileSystem::Create(char *name, int initialSize)
     else {
         freeMap = new BitMap(NumSectors);
         freeMap->FetchFrom(freeMapFile);
-        if(initialSize!=0){
-            sector1 = freeMap->Find();	// find a sector to hold the file header
-            if ((sector1 == -1)) 		
-                return FALSE;		// no free block for file header 
-        }
-        else{
-            sector1 = -1; // Creating a directory
-        }
+        //if(initialSize!=0){
+        sector1 = freeMap->Find();	// find a sector to hold the file header
+        if ((sector1 == -1)) 		
+            return FALSE;		// no free block for file header 
         sector2 = freeMap->Find();	// find a sector to hold the directory
     	if (sector2 == -1) 		
             return FALSE;		// no free block for file header 
@@ -240,11 +237,11 @@ FileSystem::Create(char *name, int initialSize)
         hdr2 = new FileHeader;
         if (!hdr2->Allocate(freeMap, SectorSize))
             	return FALSE;	// no space on disk for data
-        if(initialSize>0){
-            if (!hdr1->Allocate(freeMap, initialSize))
-            	return FALSE;	// no space on disk for data
-            hdr1->WriteBack(sector1); 
-        }
+        
+        if (!hdr1->Allocate(freeMap, initialSize))
+            return FALSE;	// no space on disk for data
+        hdr1->WriteBack(sector1); 
+        
         //hdr2 = new FileHeader;
 	    
 	    	
@@ -302,14 +299,23 @@ FileSystem::Open(char *name)
     //printf("2 %d\n",(int)directory->root);
     DEBUG('f', "Opening file %s\n", name);
     directory->FetchFrom(directoryFile);
+
     //printf("3 %d\n",(int)directory->root);
     // DirectoryEntry* tmp = ;
-    printf("Here is ok:%s %s %d\n",name,fileName,split_vector.size());
-    sector = directory->FindEntry(fileName,dir)->fileSector; 
-    printf("Here is not ok\n");
-    if (sector >= 0) 		
-	openFile = new OpenFile(sector);	// name was found in directory
-    printf("dir pointer:%d\n",(int)directory);
+    // printf("Here is ok:%s %s %d\n",name,dir,split_vector.size());
+    DirectoryEntry* de = directory->FindEntry(fileName,dir);
+    if(de!=NULL){
+        sector = de->fileSector;
+        if(sector<0){
+            printf("Can't open file size of 0. is it a directory?\n");
+            delete directory;
+            return NULL;
+        }
+        openFile = new OpenFile(sector);	// name was found in directory
+    }
+    
+	
+    // printf("dir pointer:%d\n",(int)directory);
     delete directory;
     return openFile;				// return NULL if not found
     
@@ -336,17 +342,16 @@ FileSystem::Remove(char *name)
     BitMap *freeMap;
     FileHeader *fileHdr;
     int sector;
-
     std::vector<std::string> split_vector = Split(name,'\\');
     const char* tmp = split_vector[split_vector.size()-1].c_str();
     char* fileName = new char[strlen(tmp)+1];
+    // printf("%s %d\n",tmp,split_vector.size());
     StrCopy(tmp,fileName);
+    // printf("%s\n",fileName);
     split_vector.pop_back();
-    // printf("?\n");
     const char* tmp2 = Join(split_vector,'\\');
-    //printf("?%d\n",tmp2);
-    
     char* dir;
+    // printf("???%d\n",tmp2);
     if(tmp2!=NULL){
         dir = new char[strlen(tmp2)+1];
         StrCopy(tmp2,dir);
@@ -355,14 +360,25 @@ FileSystem::Remove(char *name)
     {
         dir = NULL;
     }
-    
+    // 
     directory = new Directory(NumDirEntries);
     directory->FetchFrom(directoryFile);
-    sector = directory->FindEntry(fileName,dir)->fileSector;
-    if (sector == -1) {
+    DirectoryEntry* de = directory->FindEntry(fileName,dir);
+    if (de == NULL) {
        delete directory;
        return FALSE;			 // file not found 
     }
+    sector = de->fileSector;
+    std::map<int, ActiveFile*>::iterator itFind = activeFileList->find( sector );
+    
+    if(itFind!=activeFileList->end()){
+        //If there is other opening files
+        printf("File %s is busy. Delete Failed.\n",name);
+        delete directory;
+        return FALSE;
+    }
+    // 
+    // printf("Sector:%d Count = 0?\n",sector);
     fileHdr = new FileHeader;
     fileHdr->FetchFrom(sector);
     
@@ -371,16 +387,22 @@ FileSystem::Remove(char *name)
 
     fileHdr->Deallocate(freeMap);  		// remove data blocks
     freeMap->Clear(sector);			// remove header block
+    
     directory->Remove(fileName,dir);
+    
     //printf("directry:%d",(*directory->root)[0]->childSize);
     freeMap->WriteBack(freeMapFile);		// flush to disk
+    
     directory->WriteBack(directoryFile);        // flush to disk
     
     delete fileHdr;
+    
     delete directory;
+    
     delete freeMap;
+    
     if(dir!=NULL)
-        printf("Delete file %s\\%s successfully.\n",tmp2,name);
+        printf("Delete file %s\\%s successfully.\n",dir,name);
     else
         printf("Delete file %s successfully.\n",name);
 
@@ -457,6 +479,7 @@ WRlock* FileSystem::ActivateFile(int hdrSector){
 	if( itFind != activeFileList->end() ){
 		activeFile = (*itFind).second;
 		activeFile->openCount++;
+        
 	}
 	else{
 		activeFile = new ActiveFile;
@@ -465,21 +488,23 @@ WRlock* FileSystem::ActivateFile(int hdrSector){
 		activeFile->fileLock = new WRlock;
 		activeFileList->insert(std::pair<int,ActiveFile*>(hdrSector,activeFile) );
 	}
+    // printf("Activate:%d,count:%d\n",activeFile->hdrSector,activeFile->openCount);
     return activeFile->fileLock;
 }
 
-bool FileSystem::InactivateFile( int hdrSector ){
+int FileSystem::InactivateFile( int hdrSector ){
     std::map<int, ActiveFile*>::iterator itFind = activeFileList->find( hdrSector );
     ASSERT(itFind!=activeFileList->end());
     ActiveFile* activeFile = (*itFind).second;
     activeFile->openCount--;
+    // printf("Deactivate:%d,count:%d\n",activeFile->hdrSector,activeFile->openCount);
     if(activeFile->openCount==0){
         delete activeFile->fileLock;
         activeFileList->erase(itFind);
         delete activeFile;
-        return TRUE;
+        return 0;
     }
-    return FALSE;
+    return activeFile->openCount;
 }
 
 int FileSystem::ReadPipe(char* data){

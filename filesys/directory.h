@@ -21,8 +21,7 @@
 #include <vector>
 #include <string>
 
-#define FileNameMaxLen 		18	// for simplicity, we assume 
-					// file names are <= 9 characters long
+#define FileNameMaxLen 		18	
 #define TypeNameMaxLen 		9
 #define DirNameMaxLen  70
 // The following class defines a "directory entry", representing a file
@@ -39,11 +38,7 @@ class DirectoryEntry {
     int fileSector;				// Location on disk to find the 
 					//   FileHeader for this file 
     int selfSector;// Location on disk to find self
-    //int parentSector;
-    // char type[TypeNameMaxLen+1];
-    // char name[FileNameMaxLen + 1];	// Text name for file, with +1 for 
-		// 			// the trailing '\0'
-    // char directory[DirectoryMaxLen +1];
+    
     char type[TypeNameMaxLen+1];
     char name[FileNameMaxLen+1];
     char directory[DirNameMaxLen+1];

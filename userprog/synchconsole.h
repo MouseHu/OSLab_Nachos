@@ -10,7 +10,7 @@ extern void CBSynchReadAvail(int arg);
 extern void CBSynchWriteDone(int arg);
 class SynchConsole{
   public:
-    SynchConsole(char *inputFile = NULL,char *outputFile = NULL); // Initialize the console device
+    SynchConsole(char *inputFile=NULL,char *outputFile=NULL); // Initialize the console device
     ~SynchConsole();		// Deallocate console device
 
     char GetChar();		// Read a character, waiting if necessary

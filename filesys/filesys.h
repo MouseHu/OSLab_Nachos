@@ -99,7 +99,7 @@ class FileSystem {
     void Print();			// List all the files and their contents
 
 		WRlock* ActivateFile(int fdrSector);
-		bool InactivateFile( int fdrSector );
+		int InactivateFile( int fdrSector );
 
 		int ReadPipe(char* data);
 		void WritePipe(char* data,int length);

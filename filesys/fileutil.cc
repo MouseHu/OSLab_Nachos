@@ -57,8 +57,12 @@ bool StrCmp(char* a,char* b ){
 
 bool VectorRemove(std::vector<DirectoryEntry*>* vector,DirectoryEntry *entry){
     std::vector<DirectoryEntry*>::iterator iter = vector->begin();
-    for(;iter!=vector->end();iter++){
-        if((**iter) == *entry){
+    for(;iter!=vector->end();){
+        if(*iter == entry){
+            iter = vector->erase(iter);
+            return TRUE;
+        }else if((**iter) == *entry){
+            // printf("Vector Remove:%s %s\n",entry->name,(*iter)->name);
             iter = vector->erase(iter);
             return TRUE;
         }

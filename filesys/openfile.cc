@@ -30,10 +30,10 @@
 
 OpenFile::OpenFile(int sector,FileSystem* fs)
 { 
-    printf("Next\n");
+    // printf("Next\n");
     hdr = new FileHeader;
     hdr->FetchFrom(sector);
-    printf("Fetch From ok\n");
+    // printf("Fetch From ok\n");
     hdrSector = sector;
     seekPosition = 0;
      //printf("?\n");
@@ -42,7 +42,8 @@ OpenFile::OpenFile(int sector,FileSystem* fs)
         fileLock = fileSystem->ActivateFile(sector);
     else
         fileLock = fs->ActivateFile(sector);
-    printf("??\n");
+    // printf("Opening File:%d\n",hdrSector);
+    // printf("??\n");
 }   
 
 //----------------------------------------------------------------------
@@ -52,8 +53,10 @@ OpenFile::OpenFile(int sector,FileSystem* fs)
 
 OpenFile::~OpenFile()
 {
-    fileSystem->InactivateFile(hdrSector);
+    int opencount = fileSystem->InactivateFile(hdrSector);
+    // printf("Deleting File:%d,%d\n",hdrSector,opencount);
     delete hdr;
+   
 }
 
 //----------------------------------------------------------------------
@@ -147,15 +150,17 @@ OpenFile::ReadAt(char *into, int numBytes, int position)
 
     // read in all the full and partial sectors that we need
     buf = new char[numSectors * SectorSize];
-    //fileLock->ReadAcquire();
+    // fileLock->ReadAcquire();
     for (i = firstSector; i <= lastSector; i++)	
         synchDisk->ReadSector(hdr->ByteToSector(i * SectorSize), 
 					&buf[(i - firstSector) * SectorSize]);
-    //fileLock->ReadRelease();
+    // fileLock->ReadRelease();
     // copy the part we want
     bcopy(&buf[position - (firstSector * SectorSize)], into, numBytes);
     hdr->Visit();
+    
     hdr->WriteBack(hdrSector);
+    
     delete [] buf;
     return numBytes;
 }
@@ -170,14 +175,18 @@ OpenFile::WriteAt(char *from, int numBytes, int position)
     // printf("WriteAt:%d\n",fileLength);
     // if ((numBytes <= 0) || (position >= fileLength))
 	// return 0;				// check request
-    //     if ((position + numBytes) > fileLength)
-	// numBytes = fileLength - position;
-    if(numBytes<=0 || position<0)
+    // if ((position + numBytes) > fileLength)
+	//     numBytes = fileLength - position;
+    if((numBytes<=0) || (position<0))
         return 0;
     if(position+numBytes>fileLength){
+        fileLength = position+numBytes;
         BitMap* freeMap = new BitMap(NumSectors);
         freeMap->FetchFrom(fileSystem->freeMapFile);
+        
         hdr->ChangeSize(freeMap,position+numBytes);
+        
+        
         freeMap->WriteBack(fileSystem->freeMapFile);
         delete freeMap;
     }
@@ -195,22 +204,24 @@ OpenFile::WriteAt(char *from, int numBytes, int position)
     firstAligned = (position == (firstSector * SectorSize));
     lastAligned = ((position + numBytes) == ((lastSector + 1) * SectorSize));
 
-    //fileLock->ReadAcquire();
+    // fileLock->ReadAcquire();
 // read in first and last sector, if they are to be partially modified
+    // printf("First?\n");
     if (!firstAligned)
         ReadAt(buf, SectorSize, firstSector * SectorSize);	
+    // printf("Last?\n");
     if (!lastAligned && ((firstSector != lastSector) || firstAligned))
         ReadAt(&buf[(lastSector - firstSector) * SectorSize], 
 				SectorSize, lastSector * SectorSize);	
-    //fileLock->ReadRelease();
+    // fileLock->ReadRelease();
 // copy in the bytes we want to change 
     bcopy(from, &buf[position - (firstSector * SectorSize)], numBytes);
-    //fileLock->WriteAcquire();
+    // fileLock->WriteAcquire();
 // write modified sectors back
     for (i = firstSector; i <= lastSector; i++)	
         synchDisk->WriteSector(hdr->ByteToSector(i * SectorSize), 
 					&buf[(i - firstSector) * SectorSize]);
-    //fileLock->WriteRelease();
+    // fileLock->WriteRelease();
     hdr->Modify();
     hdr->Visit();        
     hdr->WriteBack(hdrSector);

@@ -89,10 +89,10 @@ class OpenFile {
 					// file (this interface is simpler 
 					// than the UNIX idiom -- lseek to 
 					// end of file, tell, lseek back 
-    
+    WRlock* fileLock;
   private:
     FileHeader *hdr;			// Header for this file 
-		WRlock* fileLock;
+		
     int seekPosition;			// Current position within the file
 		int hdrSector;				// File header sector , used to locate the wrlock
 };

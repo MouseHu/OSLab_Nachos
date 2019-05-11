@@ -196,14 +196,15 @@ char* ReadFileName(){
         *(name+i)=(char)data;
         i++;    
     }
-    printf("%s\n",name);
+    // printf("%s\n",name);
     return name;
 }
 void CreateHandler(){
     printf("SC Create\n");
     char* name =ReadFileName();
-    printf("%s\n",name);
+    
     bool success = fileSystem->Create(name,0);
+    printf("create:%s\n",name);
     //machine->WriteRegister(2,int(success));
     machine->PCAdvance();
 }
@@ -222,7 +223,7 @@ void CloseHandler(){
     int file = (int)(machine->ReadRegister(4));
     OpenFile *openfile = (OpenFile*)file;
     //printf("close file %d\n",openfile->Length());
-    //delete openfile;
+    delete openfile;
     printf("close file %d\n",(int)openfile);
     machine->PCAdvance();
 }

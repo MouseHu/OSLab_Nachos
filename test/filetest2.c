@@ -6,7 +6,10 @@ int
 main()
 {
 	Create("test2.txt");
-	Create("hehehe");
-	Create("hehehe\\hehe.txt");
+	Create("testdir");
+	Create("testdir\\testdir2");
+	Create("testdir\\testfile1");
+	Create("testdir\\testfile2");
+	Create("testdir\\testdir2\\lonenametestfile");
 	Halt();
 }

@@ -61,7 +61,8 @@ extern int testnum;
 // External functions used by this file
 extern void SynchTest(void);
 extern void ThreadTest(void), Copy(char *unixFile, char *nachosFile);
-extern void Print(char *file), PerformanceTest(void),PipeTest1(void),PipeTest2(void);
+extern void Print(char *file), PerformanceTest(void);
+extern void PipeTest1(void),PipeTest2(void),FileSynchTest1(void),FileSynchTest2(void),FileSynchTest3(void);
 extern void StartProcess(char *file), ConsoleTest(char *in, char *out);
 extern void MailTest(int networkID);
 extern void PrintHello();
@@ -163,6 +164,15 @@ int main(int argc, char **argv)
             PipeTest1();
 	} else if (!strcmp(*argv, "-p2")) {	// performance test
             PipeTest2();
+	}
+	else if (!strcmp(*argv, "-st1")) {	// performance test
+            FileSynchTest1();
+	}
+	else if (!strcmp(*argv, "-st2")) {	// performance test
+            FileSynchTest2();
+	}
+	else if (!strcmp(*argv, "-st3")) {	// performance test
+            FileSynchTest3();
 	}
 #endif // FILESYS
 #ifdef NETWORK
