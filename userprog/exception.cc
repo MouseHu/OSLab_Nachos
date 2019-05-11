@@ -203,7 +203,7 @@ void CreateHandler(){
     printf("SC Create\n");
     char* name =ReadFileName();
     
-    bool success = fileSystem->Create(name,0);
+    bool success = fileSystem->Create(name,128);
     printf("create:%s\n",name);
     //machine->WriteRegister(2,int(success));
     machine->PCAdvance();
@@ -212,7 +212,7 @@ void CreateHandler(){
 void OpenHandler(){
     printf("SC Open\n");
     char* name = ReadFileName();
-    int file = (int)fileSystem->Open(name);
+    int file = fileSystem->Open(name)->hdrSector;
     machine->WriteRegister(2,file);
     printf("open file %s,%d\n",name,file);
     machine->PCAdvance();
@@ -220,8 +220,8 @@ void OpenHandler(){
 
 void CloseHandler(){
     printf("SC Close\n");
-    int file = (int)(machine->ReadRegister(4));
-    OpenFile *openfile = (OpenFile*)file;
+    int hdrSector = (int)(machine->ReadRegister(4));
+    OpenFile *openfile = new OpenFile(hdrSector);
     //printf("close file %d\n",openfile->Length());
     delete openfile;
     printf("close file %d\n",(int)openfile);
@@ -232,7 +232,8 @@ void ReadHandler(){
     printf("SC Read\n");
     int buffer = (machine->ReadRegister(4));
     int size = (int)(machine->ReadRegister(5));
-    OpenFile* file = (OpenFile*)(machine->ReadRegister(6));
+    int hdrSector = (int)(machine->ReadRegister(6));
+    OpenFile* file = new OpenFile(hdrSector);
     char* content = new char[size];
     int success = file->Read(content,size);
     int data =0;
@@ -247,13 +248,15 @@ void WriteHandler(){
     printf("SC Write\n");
     int buffer = machine->ReadRegister(4);
     int size = (int)(machine->ReadRegister(5));
-    OpenFile* file = (OpenFile*)(machine->ReadRegister(6));
+    int hdrSector = (int)(machine->ReadRegister(6));
+    OpenFile* file = new OpenFile(hdrSector);
     char* content = new char[size];
     int data;
     for(int i =0;i<size;i++){
         while(!machine->ReadMem(buffer+i,1,&data));
         content[i]=char(data);
     }
+    // printf("SC Write\n");
     int success = file->Write(content,size);
     //machine->WriteRegister(2,success);
     machine->PCAdvance();

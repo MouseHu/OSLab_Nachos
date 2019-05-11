@@ -140,7 +140,7 @@ Directory::WriteBack(OpenFile *file)
     (void) file->WriteAt((char *)&tableSize, sizeof(int),0);
     for(int i=0;i<tableSize;i++){
         DirectoryEntry* de = (*root)[i];
-        printf("1\n");
+        // printf("1\n");
         (void) file->WriteAt((char *)&(de->selfSector), sizeof(int),i*sizeof(int)+sizeof(int));//, sizeof(int));
         de->WriteBack(new OpenFile(de->selfSector));
     }
@@ -156,11 +156,11 @@ DirectoryEntry::WriteBack(OpenFile *file)
     (void) file->Write((char *)type, TypeNameMaxLen+1);
     (void) file->Write((char *)name, FileNameMaxLen+1);
     (void) file->Write((char *)directory, DirNameMaxLen+1);
-    printf("2\n");
+    // printf("2\n");
     //(void) file->Write((char *)parentSector, sizeof(int));
     for(int i=0;i<childSize;i++){
         DirectoryEntry* de = (*child)[i];
-        printf("3 %d %d %d\n",i,childSize,de->selfSector);
+        // printf("3 %d %d %d\n",i,childSize,de->selfSector);
         (void) file->Write((char *)&(de->selfSector), sizeof(int));//, sizeof(int));
         de->WriteBack(new OpenFile(de->selfSector));
     }

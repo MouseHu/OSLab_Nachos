@@ -31,7 +31,7 @@ void
 StartProcess(char *filename)
 {
     //Thread* thread = new Thread("Copied thread");
-    
+    printf("start process.\n");
     OpenFile *executable = fileSystem->Open(filename);
     //OpenFile *executable2 = fileSystem->Open(filename);
 

@@ -90,7 +90,7 @@ class OpenFile {
 					// than the UNIX idiom -- lseek to 
 					// end of file, tell, lseek back 
     WRlock* fileLock;
-  private:
+  // private:
     FileHeader *hdr;			// Header for this file 
 		
     int seekPosition;			// Current position within the file

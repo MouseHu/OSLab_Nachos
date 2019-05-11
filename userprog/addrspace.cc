@@ -143,7 +143,7 @@ AddrSpace::AddrSpace(OpenFile *executable)
     if (noffH.initData.size > 0) {
         DEBUG('a', "Initializing data segment, at 0x%x, size %d\n", 
 			noffH.initData.virtualAddr, noffH.initData.size);
-        printf("numcodepage: %d\n",numCodePage);
+        // printf("numcodepage: %d\n",numCodePage);
         for(int i=0;i<noffH.initData.size;i++){
              executable->ReadAt(&(machine->virtualMemory[noffH.initData.virtualAddr+i]),
 		 	1, noffH.initData.inFileAddr+i);
